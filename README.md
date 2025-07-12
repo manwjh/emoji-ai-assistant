@@ -1,6 +1,7 @@
 # Emoji AI Assistant v0.1.0
 
 一个极简但功能完整的桌面Emoji虚拟人助手，具备桌面浮动、智能对话、情绪检测和类脑记忆系统等功能。
+<img width="503" height="597" alt="image" src="https://github.com/user-attachments/assets/7d951f2e-04a6-424c-ad22-faa7d8773ba5" />
 
 ## 🎯 功能特性
 
