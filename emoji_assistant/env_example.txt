@@ -1,0 +1,12 @@
+# Emoji 虚拟人桌面助手 - 环境变量配置模板
+# 复制此文件为 .env 并填入你的API密钥
+
+# OpenAI API配置
+OPENAI_API_KEY=your_openai_api_key_here
+
+# HuggingFace API配置
+HUGGINGFACE_API_KEY=your_huggingface_api_key_here
+
+# 其他配置（可选）
+# DEBUG_MODE=true
+# LOG_LEVEL=DEBUG 
