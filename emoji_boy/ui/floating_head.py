@@ -10,8 +10,8 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import Qt, QTimer, QPropertyAnimation, QEasingCurve, pyqtSignal
 from PyQt5.QtGui import QFont, QPainter, QColor, QPixmap, QIcon
 
-from .speech_bubble import SpeechBubbleWidget
 from interaction.chat_input import ChatInputDialog
+from core.chat_memory import chat_memory
 
 
 class FloatingEmojiWindow(QWidget):
@@ -26,13 +26,17 @@ class FloatingEmojiWindow(QWidget):
         self.llm_client = llm_client
         self.emotion_detector = emotion_detector
         
-        # 窗口属性设置
+        # 窗口属性设置 - 优化以减少对其他程序的影响
         self.setWindowFlags(
             Qt.FramelessWindowHint |  # 无边框
             Qt.WindowStaysOnTopHint |  # 总在最前
-            Qt.Tool  # 不在任务栏显示
+            Qt.Tool |  # 不在任务栏显示，减少系统干扰
+            Qt.WindowDoesNotAcceptFocus  # 不接受焦点
         )
         self.setAttribute(Qt.WA_TranslucentBackground)  # 透明背景
+        self.setAttribute(Qt.WA_ShowWithoutActivating)  # 显示时不激活
+        self.setAttribute(Qt.WA_NoSystemBackground)  # 无系统背景
+        self.setAttribute(Qt.WA_TranslucentBackground)  # 确保完全透明
         
         # 窗口大小和位置
         self.resize(80, 80)
@@ -44,15 +48,20 @@ class FloatingEmojiWindow(QWidget):
         # 动画效果
         self.setup_animations()
         
-        # 气泡组件
-        self.speech_bubble = None
-        
         # 聊天对话框
         self.chat_dialog = None
         
         # 拖拽相关
         self.dragging = False
         self.drag_position = None
+        
+        # 保持最顶层的定时器 - 降低频率以减少系统影响
+        self.stay_on_top_timer = QTimer()
+        self.stay_on_top_timer.timeout.connect(self.ensure_stay_on_top)
+        self.stay_on_top_timer.start(2000)  # 每2秒检查一次，减少系统负担
+        
+        # 记录上次检查时间，避免频繁操作
+        self.last_check_time = 0
     
     def init_ui(self):
         """初始化用户界面"""
@@ -68,21 +77,36 @@ class FloatingEmojiWindow(QWidget):
                 color: #333333;
                 background: transparent;
                 border: none;
+                background-color: transparent;
             }
         """)
         
-        # 添加阴影效果
-        shadow = QGraphicsDropShadowEffect()
-        shadow.setBlurRadius(15)
-        shadow.setColor(QColor(0, 0, 0, 80))
-        shadow.setOffset(0, 2)
-        self.emoji_label.setGraphicsEffect(shadow)
+        # 添加阴影效果（可选，如果不需要阴影可以注释掉）
+        # shadow = QGraphicsDropShadowEffect()
+        # shadow.setBlurRadius(15)
+        # shadow.setColor(QColor(0, 0, 0, 80))
+        # shadow.setOffset(0, 2)
+        # self.emoji_label.setGraphicsEffect(shadow)
         
         layout.addWidget(self.emoji_label)
         self.setLayout(layout)
         
         # 设置鼠标样式
         self.setCursor(Qt.PointingHandCursor)
+        
+        # 设置窗口完全透明
+        self.setStyleSheet("""
+            QWidget {
+                background: transparent;
+                background-color: transparent;
+                border: none;
+            }
+        """)
+    
+    def paintEvent(self, event):
+        """重写paintEvent以确保完全透明"""
+        # 不绘制任何背景，完全透明
+        pass
     
     def setup_animations(self):
         """设置动画效果"""
@@ -153,6 +177,9 @@ class FloatingEmojiWindow(QWidget):
         if self.llm_client:
             # 检查是否已经有对话窗口打开
             if self.chat_dialog is None or not self.chat_dialog.isVisible():
+                # 开始新的对话会话（每次打开新窗口都开始新会话）
+                chat_memory.start_new_session()
+                
                 self.chat_dialog = ChatInputDialog(self.llm_client, self)
                 # 连接关闭信号，清理引用
                 self.chat_dialog.finished.connect(self.on_chat_dialog_closed)
@@ -164,43 +191,9 @@ class FloatingEmojiWindow(QWidget):
     
     def on_chat_dialog_closed(self, result):
         """聊天对话框关闭时的处理"""
+        # 结束当前对话会话
+        chat_memory.end_current_session()
         self.chat_dialog = None
-    
-    def show_response_bubble(self, message, response):
-        """显示回复气泡"""
-        if not self.speech_bubble:
-            self.speech_bubble = SpeechBubbleWidget(self)
-        
-        self.speech_bubble.show_message(response)
-        self.speech_bubble.show()
-    
-    def show_emotion_bubble(self, emotion_type, message):
-        """显示情绪检测气泡"""
-        if not self.speech_bubble:
-            self.speech_bubble = SpeechBubbleWidget(self)
-        
-        self.speech_bubble.show_message(message)
-        self.speech_bubble.show()
-        
-        # 根据情绪类型改变Emoji
-        self.change_emoji_by_emotion(emotion_type)
-    
-    def change_emoji_by_emotion(self, emotion_type):
-        """根据情绪类型改变Emoji"""
-        emoji_map = {
-            'sad': '😢',
-            'angry': '😠',
-            'tired': '😴',
-            'happy': '😊',
-            'surprised': '😲',
-            'default': '😺'
-        }
-        
-        new_emoji = emoji_map.get(emotion_type, emoji_map['default'])
-        self.emoji_label.setText(new_emoji)
-        
-        # 3秒后恢复默认Emoji
-        QTimer.singleShot(3000, lambda: self.emoji_label.setText('😺'))
     
     def enterEvent(self, event):
         """鼠标进入事件"""
@@ -220,4 +213,33 @@ class FloatingEmojiWindow(QWidget):
         
         self.hover_animation.setStartValue(current_geometry)
         self.hover_animation.setEndValue(target_geometry)
-        self.hover_animation.start() 
+        self.hover_animation.start()
+    
+    def ensure_stay_on_top(self):
+        """确保窗口保持在最顶层，同时减少对其他程序的影响"""
+        import time
+        current_time = time.time()
+        
+        # 避免过于频繁的检查，至少间隔1秒
+        if current_time - self.last_check_time < 1.0:
+            return
+        
+        self.last_check_time = current_time
+        
+        # 只在窗口不可见时才进行恢复操作
+        if not self.isVisible():
+            self.show()
+            return
+        
+        # 检查是否真的需要恢复最顶层状态
+        # 只有在窗口被其他程序完全覆盖时才进行操作
+        if not self.isActiveWindow() and not self.isVisible():
+            # 使用更温和的方式保持最顶层，减少系统干扰
+            self.setWindowFlags(
+                Qt.FramelessWindowHint |
+                Qt.WindowStaysOnTopHint |
+                Qt.Tool |
+                Qt.WindowDoesNotAcceptFocus
+            )
+            self.show()
+            self.raise_() 

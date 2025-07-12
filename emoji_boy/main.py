@@ -12,7 +12,6 @@ from PyQt5.QtCore import QThread, QTimer
 from PyQt5.QtGui import QFont
 
 from ui.floating_head import FloatingEmojiWindow
-from interaction.keyboard_listener import KeyboardListener
 from interaction.emotion_detector import EmotionDetector
 from core.llm_client import LLMClient
 import config
@@ -27,7 +26,7 @@ class EmojiAssistant:
         
         # 设置应用程序属性
         self.app.setApplicationName("Emoji Assistant")
-        self.app.setApplicationVersion("1.0.0")
+        self.app.setApplicationVersion("0.1.0")
         
         # 配置字体，避免字体警告
         self._setup_fonts()
@@ -36,7 +35,6 @@ class EmojiAssistant:
         self.llm_client = None
         self.emotion_detector = None
         self.floating_window = None
-        self.keyboard_listener = None
         self.keyboard_thread = None
         
         # 初始化组件
@@ -71,15 +69,10 @@ class EmojiAssistant:
                 emotion_detector=self.emotion_detector
             )
             
-            # 初始化键盘监听器
-            self.keyboard_listener = KeyboardListener(self.emotion_detector)
-            self.keyboard_thread = QThread()
-            self.keyboard_listener.moveToThread(self.keyboard_thread)
-            
             # 连接信号
-            self.emotion_detector.emotion_detected.connect(
-                self.floating_window.show_emotion_bubble
-            )
+            # self.emotion_detector.emotion_detected.connect(
+            #     self.floating_window.show_emotion_bubble
+            # )
             
             print("✅ 组件初始化成功")
             
@@ -115,10 +108,6 @@ class EmojiAssistant:
         try:
             print("🧹 正在清理资源...")
             
-            # 停止键盘监听
-            if self.keyboard_listener:
-                self.keyboard_listener.stop_listening()
-            
             # 停止线程
             if self.keyboard_thread and self.keyboard_thread.isRunning():
                 self.keyboard_thread.quit()
@@ -143,10 +132,12 @@ class EmojiAssistant:
             # 显示悬浮窗口
             if self.floating_window:
                 self.floating_window.show()
+                # 确保窗口在最顶层
+                self.floating_window.raise_()
+                self.floating_window.activateWindow()
             
             # 启动键盘监听
-            if self.keyboard_thread and self.keyboard_listener:
-                self.keyboard_thread.started.connect(self.keyboard_listener.start_listening)
+            if self.keyboard_thread:
                 self.keyboard_thread.start()
             
             print("✅ Emoji 助手已启动，悬浮在屏幕右下角")
@@ -175,14 +166,14 @@ class EmojiAssistant:
     def _health_check(self):
         """健康检查"""
         try:
-            # 检查键盘监听器状态
-            if self.keyboard_listener and not self.keyboard_listener.is_listening:
-                print("⚠️ 键盘监听器异常停止，尝试重启...")
-                self.keyboard_listener.start_listening()
-            
             # 检查线程状态
             if self.keyboard_thread and not self.keyboard_thread.isRunning():
                 print("⚠️ 键盘监听线程异常停止")
+            
+            # 检查悬浮窗口是否在最顶层
+            if self.floating_window and self.floating_window.isVisible():
+                # 确保悬浮窗口保持在最顶层
+                self.floating_window.raise_()
                 
         except Exception as e:
             print(f"⚠️ 健康检查失败: {e}")

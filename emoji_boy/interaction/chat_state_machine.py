@@ -41,11 +41,6 @@ class ChatStateMachine(QObject):
     
     def change_state(self, new_state: ChatState):
         """改变状态"""
-        # 防止重复状态转换
-        if self._is_transitioning:
-            print(f"⚠️ 状态转换进行中，忽略状态变化请求: {new_state.value}")
-            return
-        
         # 防止重复进入同一状态
         if self.current_state == new_state:
             print(f"⚠️ 已在目标状态，忽略重复状态变化: {new_state.value}")
@@ -70,12 +65,18 @@ class ChatStateMachine(QObject):
     def handle_checking(self, context):
         """处理检查状态"""
         print("🔍 进入检查状态")
-        # 检查API连接
-        result = context.llm_client.test_connection()
-        if result["success"]:
-            self.change_state(ChatState.NORMAL)
-        else:
-            self.change_state(ChatState.CONFIGURING)
+        try:
+            # 检查API连接
+            result = context.llm_client.test_connection()
+            if result["success"]:
+                self.change_state(ChatState.NORMAL)
+            else:
+                self.change_state(ChatState.CONFIGURING)
+        except Exception as e:
+            print(f"❌ 检查状态处理异常: {e}")
+            import traceback
+            traceback.print_exc()
+            self.change_state(ChatState.ERROR)
     
     def handle_configuring(self, context):
         """处理配置状态"""

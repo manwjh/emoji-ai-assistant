@@ -7,5 +7,5 @@ Minimal Floating Emoji Assistant
 感知用户键盘输入（情绪关键词检测）等功能。
 """
 
-__version__ = "1.0.0"
+__version__ = "0.1.0"
 __author__ = "Emoji Assistant Team" 

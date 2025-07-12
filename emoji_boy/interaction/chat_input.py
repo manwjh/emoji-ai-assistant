@@ -5,65 +5,125 @@
 from PyQt5.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QTextEdit, 
     QPushButton, QLabel, QProgressBar, QFrame, QApplication,
-    QScrollArea, QWidget, QSizePolicy
+    QScrollArea, QWidget, QSizePolicy, QPlainTextEdit
 )
 from PyQt5.QtCore import Qt, QTimer, pyqtSignal, QThread, QSize
 from PyQt5.QtGui import QFont, QIcon, QKeyEvent, QTextCursor
 import re
 from .chat_state_machine import ChatStateMachine, ChatState
 from core.config_manager import config_manager
+from core.chat_memory import chat_memory
 
 
 class MessageWidget(QWidget):
-    """单条消息组件"""
-    
-    def __init__(self, text, is_user=True, parent=None):
+    """单条消息组件，支持左/右侧emoji头像+气泡布局，气泡内容自适应高度"""
+    def __init__(self, text, is_user=True, avatar_emoji=None, parent=None):
         super().__init__(parent)
         self.text = text
         self.is_user = is_user
+        self.avatar_emoji = avatar_emoji or ("😺" if is_user else "🤖")
         self.init_ui()
-    
+
     def init_ui(self):
         layout = QHBoxLayout()
-        layout.setContentsMargins(10, 5, 10, 5)
-        
-        # 使用QTextEdit替代QLabel以支持文本选择和复制
-        message_text = QTextEdit()
-        message_text.setPlainText(self.text)
-        message_text.setReadOnly(True)
-        message_text.setMaximumWidth(400)
-        message_text.setMaximumHeight(200)  # 限制最大高度
-        message_text.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
-        message_text.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        message_text.setStyleSheet(f"""
-            QTextEdit {{
-                background: {'#007AFF' if self.is_user else '#E5E5EA'};
-                color: {'white' if self.is_user else 'black'};
+        layout.setContentsMargins(5, 5, 5, 5)
+        layout.setSpacing(8)
+
+        # 头像
+        avatar_label = QLabel(self.avatar_emoji)
+        avatar_label.setFixedSize(36, 36)
+        avatar_label.setAlignment(Qt.AlignCenter)
+        avatar_label.setStyleSheet("""
+            QLabel {
+                font-size: 28px;
                 border-radius: 18px;
-                padding: 12px 16px;
-                font-size: 14px;
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                border: none;
-                selection-background-color: {'rgba(255,255,255,0.3)' if self.is_user else 'rgba(0,0,0,0.1)'};
-            }}
-            QTextEdit:focus {{
-                outline: none;
-                border: none;
-            }}
+                background: transparent;
+            }
         """)
-        
-        # 根据消息类型调整布局
+
+        # 气泡内容 QLabel
+        self.bubble = QLabel(self.text)
+        self.bubble.setWordWrap(True)
+        self.bubble.setTextInteractionFlags(Qt.TextSelectableByMouse)
+        self.bubble.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Preferred)
+        self.bubble.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        self.bubble.setMinimumHeight(28)
+        # 区分用户/助手气泡样式
+        if self.is_user:
+            self.bubble.setStyleSheet("""
+                QLabel {
+                    background: #1aad19;
+                    color: white;
+                    border-radius: 16px;
+                    padding: 10px 16px;
+                    font-size: 15px;
+                }
+            """)
+        else:
+            self.bubble.setStyleSheet("""
+                QLabel {
+                    background: #333333;
+                    color: white;
+                    border-radius: 16px;
+                    padding: 10px 16px;
+                    font-size: 15px;
+                }
+            """)
+        self.bubble.adjustSize()
+
+        # 左右布局：用户右侧，助手左侧
         if self.is_user:
             layout.addStretch()
-            layout.addWidget(message_text)
+            layout.addWidget(self.bubble)
+            layout.addWidget(avatar_label)
         else:
-            layout.addWidget(message_text)
+            layout.addWidget(avatar_label)
+            layout.addWidget(self.bubble)
             layout.addStretch()
-        
+
         self.setLayout(layout)
+        self.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
+        self.update_bubble_width()
+
+    def update_bubble_width(self):
+        """
+        气泡宽度自适应：
+        - 单行内容：宽度自适应内容
+        - 多行内容：宽度拉满最大宽度
+        """
+        parent = self.parentWidget()
+        if parent is not None:
+            parent_width = parent.width()
+            avatar_width = 36
+            layout_spacing = 8
+            margin = 10  # layout左右margin
+            max_bubble_width = parent_width - avatar_width - layout_spacing - margin * 2
+            if max_bubble_width > 80:
+                metrics = self.bubble.fontMetrics()
+                text = self.bubble.text()
+                single_line_width = metrics.width(text)
+                rect = metrics.boundingRect(0, 0, max_bubble_width, 1000, Qt.TextWordWrap, text)
+                line_height = metrics.lineSpacing()
+                num_lines = rect.height() // line_height
+                if single_line_width <= max_bubble_width and '\n' not in text and num_lines <= 1:
+                    # 单行，内容宽度自适应
+                    bubble_width = single_line_width + 32  # padding: 16*2
+                    bubble_width = min(bubble_width, max_bubble_width)
+                    self.bubble.setMinimumWidth(0)
+                    self.bubble.setMaximumWidth(max_bubble_width)
+                    self.bubble.resize(bubble_width, self.bubble.height())
+                else:
+                    # 多行，宽度拉满
+                    self.bubble.setMinimumWidth(max_bubble_width)
+                    self.bubble.setMaximumWidth(max_bubble_width)
+            self.bubble.adjustSize()
+
+    def resizeEvent(self, event):
+        self.update_bubble_width()
+        super().resizeEvent(event)
 
 
-class CustomTextEdit(QTextEdit):
+class CustomPlainTextEdit(QPlainTextEdit):
     """自定义文本编辑器，处理回车键事件"""
     enter_pressed = pyqtSignal()
     escape_pressed = pyqtSignal()
@@ -89,26 +149,28 @@ class ChatDialog(QDialog):
         self.temp_message_widget = None  # 临时状态消息组件
         self.drag_pos = None  # 拖动支持
         
+        # 让主窗口全透明
+        self.setAttribute(Qt.WA_TranslucentBackground)
+        self.setStyleSheet("background: transparent;")
+        
         # 初始化状态机
         self.state_machine = ChatStateMachine()
         self.state_machine.state_changed.connect(self.on_state_changed)
         
         # self.setWindowTitle("Emoji 助手")  # 移除窗口标题
-        self.setWindowFlags(Qt.Window | Qt.WindowStaysOnTopHint)
+        self.setWindowFlags(
+            Qt.FramelessWindowHint |  # 无边框
+            Qt.WindowStaysOnTopHint |  # 总在最前
+            Qt.Window  # 独立窗口
+        )
         self.setModal(False)
         self.resize(500, 600)
         self.init_ui()
         self.setup_styles()
 
     def paintEvent(self, event):
-        from PyQt5.QtGui import QPainter, QColor, QBrush, QPen
-        painter = QPainter(self)
-        painter.setRenderHint(QPainter.Antialiasing)
-        color = QColor(255, 255, 255, 40)  # 半透明白色
-        painter.setBrush(QBrush(color))
-        painter.setPen(QPen(QColor(255, 255, 255, 80), 1))  # 半透明描边
-        rect = self.rect().adjusted(0, 0, -1, -1)
-        painter.drawRoundedRect(rect, 18, 18)
+        # 不绘制任何背景，保持全透明
+        pass
 
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
@@ -127,33 +189,72 @@ class ChatDialog(QDialog):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
 
-        # 移除标题栏
-        # 标题栏代码已被注释或删除
-        # title_bar = QFrame()
-        # title_bar.setStyleSheet("""
-        #     QFrame {
-        #         background: #007AFF;
-        #         border: none;
-        #     }
-        # """)
-        # title_bar.setFixedHeight(50)
+        # 自定义标题栏（用于关闭按钮）
+        title_bar = QFrame()
+        title_bar.setStyleSheet("""
+            QFrame {
+                background: transparent;
+                border: none;
+            }
+        """)
+        title_bar.setFixedHeight(40)
         
-        # title_layout = QHBoxLayout(title_bar)
-        # title_label = QLabel("😺 Emoji 助手")
-        # title_label.setStyleSheet("""
-        #     QLabel {
-        #         color: white;
-        #         font-size: 16px;
-        #         font-weight: bold;
-        #         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        #     }
-        # """)
-        # title_layout.addWidget(title_label)
-        # title_layout.addStretch()
+        title_layout = QHBoxLayout(title_bar)
+        title_layout.setContentsMargins(15, 5, 15, 5)
         
-        # layout.addWidget(title_bar)
+        # 标题
+        title_label = QLabel("😺 Emoji 助手")
+        title_label.setStyleSheet("""
+            QLabel {
+                color: rgba(255,255,255,0.8);
+                font-size: 14px;
+                font-weight: bold;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            }
+        """)
+        title_layout.addWidget(title_label)
+        title_layout.addStretch()
+        
+        # 关闭按钮
+        close_button = QPushButton("×")
+        close_button.setFixedSize(24, 24)
+        close_button.setStyleSheet("""
+            QPushButton {
+                background: rgba(255,255,255,0.2);
+                border: none;
+                border-radius: 12px;
+                color: rgba(255,255,255,0.8);
+                font-size: 16px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background: rgba(255,255,255,0.3);
+                color: white;
+            }
+            QPushButton:pressed {
+                background: rgba(255,255,255,0.4);
+            }
+        """)
+        close_button.clicked.connect(self.reject)
+        title_layout.addWidget(close_button)
+        
+        layout.addWidget(title_bar)
 
-        # 消息历史区域
+        # 主聊天区域 - 类似命令行风格
+        chat_container = QFrame()
+        chat_container.setStyleSheet("""
+            QFrame {
+                background: rgba(0,0,0,0.7);
+                border: 1px solid rgba(255,255,255,0.2);
+                border-radius: 8px;
+                margin: 10px;
+            }
+        """)
+        chat_layout = QVBoxLayout(chat_container)
+        chat_layout.setContentsMargins(10, 10, 10, 10)
+        chat_layout.setSpacing(5)
+
+        # 消息历史区域 - 占据大部分空间
         self.scroll_area = QScrollArea()
         self.scroll_area.setWidgetResizable(True)
         self.scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
@@ -161,67 +262,96 @@ class ChatDialog(QDialog):
         self.scroll_area.setStyleSheet("""
             QScrollArea {
                 border: none;
-                background: #F2F2F7;
+                background: transparent;
             }
             QScrollBar:vertical {
-                background: #F2F2F7;
-                width: 8px;
-                border-radius: 4px;
+                background: transparent;
+                width: 6px;
+                border-radius: 3px;
             }
             QScrollBar::handle:vertical {
-                background: #C7C7CC;
-                border-radius: 4px;
+                background: rgba(255,255,255,0.3);
+                border-radius: 3px;
                 min-height: 20px;
             }
             QScrollBar::handle:vertical:hover {
-                background: #A8A8AD;
+                background: rgba(255,255,255,0.5);
             }
         """)
         
         self.messages_widget = QWidget()
+        self.messages_widget.setStyleSheet("""
+            QWidget {
+                background: transparent;
+                border: none;
+            }
+        """)
         self.messages_layout = QVBoxLayout(self.messages_widget)
-        self.messages_layout.setContentsMargins(10, 10, 10, 10)
-        self.messages_layout.setSpacing(8)
+        self.messages_layout.setContentsMargins(5, 5, 5, 5)
+        self.messages_layout.setSpacing(3)
         self.messages_layout.addStretch()
         
         self.scroll_area.setWidget(self.messages_widget)
-        layout.addWidget(self.scroll_area)
+        self.scroll_area.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
+        chat_layout.addWidget(self.scroll_area)
 
-        # 输入区域
+        # 输入区域 - 固定在底部
         input_frame = QFrame()
         input_frame.setStyleSheet("""
             QFrame {
-                background: white;
-                border-top: 1px solid #E5E5EA;
+                background: rgba(255,255,255,0.1);
+                border: 1px solid rgba(255,255,255,0.2);
+                border-radius: 6px;
+                margin-top: 5px;
             }
         """)
-        input_frame.setFixedHeight(80)
+        input_frame.setFixedHeight(60)
         
-        input_layout = QVBoxLayout(input_frame)
-        input_layout.setContentsMargins(15, 10, 15, 15)
+        input_layout = QHBoxLayout(input_frame)
+        input_layout.setContentsMargins(10, 8, 10, 8)
+        input_layout.setAlignment(Qt.AlignVCenter)
+        
+        # 输入提示符
+        prompt_label = QLabel(">>> ")
+        prompt_label.setStyleSheet("""
+            QLabel {
+                color: rgba(0,255,0,0.8);
+                font-family: 'Courier New', monospace;
+                font-size: 14px;
+                font-weight: bold;
+            }
+        """)
+        input_layout.addWidget(prompt_label)
         
         # 输入框
-        self.input_text = CustomTextEdit()
+        self.input_text = CustomPlainTextEdit()
         self.input_text.setPlaceholderText("输入消息... (回车发送，ESC退出)")
-        self.input_text.setFont(QFont("Arial", 14))
-        self.input_text.setMaximumHeight(50)
+        self.input_text.setFont(QFont("Courier New", 13))
+        self.input_text.setMinimumHeight(36)
+        self.input_text.setMaximumHeight(120)  # 约5行
+        self.input_text.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.input_text.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         self.input_text.setStyleSheet("""
-            QTextEdit {
-                border: 1px solid #E5E5EA;
-                border-radius: 20px;
-                padding: 8px 15px;
-                background: #F2F2F7;
-                color: #333333;
-                font-size: 14px;
+            QPlainTextEdit {
+                border: none;
+                background: transparent;
+                color: rgba(255,255,255,0.9);
+                font-family: 'Courier New', monospace;
+                font-size: 13px;
+                padding: 8px 5px;
             }
-            QTextEdit:focus {
-                border-color: #007AFF;
-                background: white;
+            QPlainTextEdit:focus {
+                outline: none;
+                border: none;
             }
         """)
+        # 自动高度调整
+        self.input_text.textChanged.connect(self.adjust_input_text_height)
         
         input_layout.addWidget(self.input_text)
-        layout.addWidget(input_frame)
+        chat_layout.addWidget(input_frame)
+        
+        layout.addWidget(chat_container)
         
         self.setLayout(layout)
         self.input_text.setFocus()
@@ -236,9 +366,9 @@ class ChatDialog(QDialog):
     def setup_styles(self):
         self.setStyleSheet("""
             QDialog {
-                background: rgba(255, 255, 255, 0.55);
-                border-radius: 18px;
-                border: 1.5px solid rgba(255,255,255,0.35);
+                background: rgba(0, 0, 0, 0.8);
+                border-radius: 12px;
+                border: 1px solid rgba(255,255,255,0.3);
             }
             QScrollArea {
                 border: none;
@@ -249,29 +379,29 @@ class ChatDialog(QDialog):
                 border: none;
             }
             QTextEdit {
-                border: 1.5px solid rgba(255,255,255,0.25);
-                border-radius: 16px;
-                background: rgba(255,255,255,0.35);
-                color: #222;
-                font-size: 15px;
-                padding: 8px 15px;
+                border: none;
+                background: transparent;
+                color: rgba(255,255,255,0.9);
+                font-family: 'Courier New', monospace;
+                font-size: 13px;
+                padding: 2px 5px;
             }
             QTextEdit:focus {
-                border-color: #7ecfff;
-                background: rgba(255,255,255,0.55);
+                outline: none;
+                border: none;
             }
             QScrollBar:vertical {
                 background: transparent;
-                width: 8px;
-                border-radius: 4px;
+                width: 6px;
+                border-radius: 3px;
             }
             QScrollBar::handle:vertical {
-                background: rgba(200,200,200,0.4);
-                border-radius: 4px;
+                background: rgba(255,255,255,0.3);
+                border-radius: 3px;
                 min-height: 20px;
             }
             QScrollBar::handle:vertical:hover {
-                background: rgba(160,160,160,0.5);
+                background: rgba(255,255,255,0.5);
             }
         """)
 
@@ -327,29 +457,39 @@ class ChatDialog(QDialog):
             self.clear_temp_dialog_history()
         
         if new_state == ChatState.CHECKING:
-            self.show_temp_message("连接🧠...")
-            self.input_text.setEnabled(False)
-            
-            # 检查API连接
-            result = self.llm_client.test_connection()
-            self.remove_temp_message()
-            
-            if result["success"]:
-                self.state_machine.change_state(ChatState.NORMAL)
-                self.add_message("你好！我是你的 Emoji 助手，有什么可以帮助你的吗？", False)
-            else:
-                self.state_machine.change_state(ChatState.CONFIGURING)
-                config_message = """抱歉啦，我没法联通主机。小主请检查一下网络，和告诉我令牌配置，格式如下：
+            try:
+                self.show_temp_message("连接🧠...")
+                self.input_text.setEnabled(False)
+                
+                # 检查API连接
+                result = self.llm_client.test_connection()
+                self.remove_temp_message()
+                
+                if result["success"]:
+                    self.state_machine.change_state(ChatState.NORMAL)
+                    self.add_message("小主好！", False)
+                else:
+                    self.state_machine.change_state(ChatState.CONFIGURING)
+                    config_message = """抱歉啦，我没法联通主机。小主请检查一下网络，和告诉我令牌配置，格式如下：
 
 base_url="https://ark.cn-beijing.volces.com/api/v3"
 api_key=41a9d475-45a9-****-****-bbb75505e9bf
 model="doubao-seed-1-6-flash-250615"
 
 请按照上面的格式输入您的API配置信息。"""
-                self.add_message(config_message, False)
-            
-            self.input_text.setEnabled(True)
-            self.input_text.setFocus()
+                    self.add_message(config_message, False)
+                
+                self.input_text.setEnabled(True)
+                self.input_text.setFocus()
+            except Exception as e:
+                print(f"❌ 状态检查时发生异常: {e}")
+                import traceback
+                traceback.print_exc()
+                self.remove_temp_message()
+                self.state_machine.change_state(ChatState.ERROR)
+                self.add_message(f"❌ 连接检查失败: {str(e)}", False)
+                self.input_text.setEnabled(True)
+                self.input_text.setFocus()
         
         elif new_state == ChatState.NORMAL:
             # 正常对话状态，确保输入框可用
@@ -441,6 +581,9 @@ model="doubao-seed-1-6-flash-250615"
         if not message:
             return
         
+        # 记录用户消息到对话记录
+        chat_memory.record_user_message(message)
+        
         # 添加用户消息
         self.add_message(message, True)
         
@@ -525,6 +668,9 @@ model="doubao-seed-1-6-flash-250615"
         # 移除临时状态消息
         self.remove_temp_message()
         
+        # 记录AI回复到对话记录
+        chat_memory.record_ai_message(response)
+        
         # 添加AI回复
         self.add_message(response, False)
         
@@ -558,6 +704,19 @@ model="doubao-seed-1-6-flash-250615"
             self.response_thread.terminate()
             self.response_thread.wait()
         event.accept()
+
+    def adjust_input_text_height(self):
+        doc = self.input_text.document()
+        font_metrics = self.input_text.fontMetrics()
+        line_height = font_metrics.lineSpacing()
+        num_lines = doc.blockCount()
+        padding = 16
+        min_height = 36
+        max_height = 120
+        new_height = min_height + (num_lines - 1) * line_height + padding
+        new_height = max(min_height, min(new_height, max_height))
+        self.input_text.setFixedHeight(new_height)
+        # 移除 setViewportMargins，保持顶部对齐
 
 
 # 保持向后兼容性

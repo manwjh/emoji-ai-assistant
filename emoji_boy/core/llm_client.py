@@ -98,15 +98,22 @@ class LLMClient:
         return self._config_cache
     
     def _get_system_prompt(self) -> str:
-        """获取系统提示词"""
-        return """你是一个可爱的Emoji虚拟人助手，名字叫小喵。你的性格特点：
-1. 友善、温暖、充满爱心
-2. 说话简洁明了，经常使用emoji表情
-3. 会安慰人，给出积极正面的建议
-4. 回答要实用且有趣
-5. 保持对话的连贯性和友好性
-
-请用轻松愉快的语气回答用户的问题，并在适当的时候使用emoji表情。"""
+        """获取系统提示词，自动拼接 memC.txt 作为 AI 潜意识"""
+        import os
+        memc_path = os.path.join(os.path.dirname(__file__), '../MemABC/memC/memC.txt')
+        try:
+            with open(memc_path, 'r', encoding='utf-8') as f:
+                memc_content = f.read().strip()
+            # 去掉头部标志
+            if memc_content.startswith('# memC记忆'):
+                memc_content = memc_content.split('\n', 1)[-1].strip()
+        except Exception:
+            memc_content = ''
+        base_prompt = """你是一个可爱的Emoji虚拟人助手，名字叫小喵。你的性格特点：\n1. 友善、温暖、充满爱心\n2. 说话简洁明了，经常使用emoji表情\n3. 会安慰人，给出积极正面的建议\n4. 回答要实用且有趣\n5. 保持对话的连贯性和友好性\n\n请用轻松愉快的语气回答用户的问题，并在适当的时候使用emoji表情。"""
+        if memc_content:
+            return f"# 潜意识\n{memc_content}\n# 角色设定\n{base_prompt}"
+        else:
+            return base_prompt
     
     def get_response(self, message: str) -> str:
         """

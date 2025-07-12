@@ -3,7 +3,6 @@
 """
 
 from .emotion_detector import EmotionDetector
-from .keyboard_listener import KeyboardListener
 from .chat_input import ChatInputDialog
 
-__all__ = ['EmotionDetector', 'KeyboardListener', 'ChatInputDialog'] 
+__all__ = ['EmotionDetector', 'ChatInputDialog'] 
