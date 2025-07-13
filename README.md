@@ -78,6 +78,7 @@ python run.py
 - **MemC**: 长期记忆存储和AI潜意识
 - 支持A2B和A2C编码转换
 - 自动备份和记忆管理
+- **自动编码调度**: 每天凌晨3点自动执行编码，程序关闭时静默执行（如果当天未执行）
 
 ## 🏗️ 项目结构
 
@@ -92,6 +93,8 @@ emoji-ai-assistant/
 │   ├── start.sh                  # 完整启动脚本
 │   ├── quick_start.sh            # 快速启动脚本
 │   ├── test_venv.sh              # 环境测试脚本
+│   ├── test_auto_encoder.py      # 自动编码测试脚本
+│   ├── manual_encode.py          # 手动编码脚本
 │   ├── emoji_boy.png             # Emoji图标
 │   ├── ui/                       # 用户界面模块
 │   │   ├── __init__.py
@@ -105,7 +108,8 @@ emoji-ai-assistant/
 │   │   ├── __init__.py
 │   │   ├── llm_client.py         # AI模型客户端
 │   │   ├── chat_memory.py        # 聊天记忆管理
-│   │   └── config_manager.py     # 配置管理器
+│   │   ├── config_manager.py     # 配置管理器
+│   │   └── auto_encoder.py       # 自动编码调度器
 │   ├── MemABC/                   # 记忆系统
 │   │   ├── README.md             # 记忆系统文档
 │   │   ├── a2b.sh                # A到B编码脚本
@@ -134,7 +138,19 @@ emoji-ai-assistant/
 
 ## 📋 开发计划
 
-### v0.1.0 ✅ (当前版本)
+### v0.1.1 ✅ (当前版本)
+- [x] 桌面浮动Emoji虚拟人
+- [x] 智能对话系统（多API支持）
+- [x] MemABC记忆系统基础架构
+- [x] 聊天状态机和记忆管理
+- [x] 配置管理系统
+- [x] 完整的启动脚本系统
+- [x] 🔐 安全增强：API密钥泄露防护
+- [x] 🔐 安全增强：预提交钩子检查
+- [x] 🔐 安全增强：安全扫描工具
+- [x] 🔐 安全增强：完整的安全文档
+
+### v0.1.0 ✅ (历史版本)
 - [x] 桌面浮动Emoji虚拟人
 - [x] 智能对话系统（多API支持）
 - [x] MemABC记忆系统基础架构
@@ -163,6 +179,7 @@ emoji-ai-assistant/
 - **API费用**: 使用OpenAI API会产生费用，请注意控制使用量
 - **隐私保护**: 键盘监听仅检测情绪关键词，不会记录完整文本
 - **数据存储**: 对话历史和记忆数据存储在本地，注意备份
+- **API密钥安全**: 请参考 [SECURITY.md](SECURITY.md) 了解如何安全管理API密钥
 
 ## 🐛 故障排除
 
@@ -217,6 +234,10 @@ export LOG_LEVEL=DEBUG
 ## 📄 许可证
 
 MIT License - 详见 [LICENSE](LICENSE) 文件
+
+## 📝 更新日志
+
+详细的功能更新和修复记录，请查看 [CHANGELOG.md](CHANGELOG.md)
 
 ## 🤝 贡献
 

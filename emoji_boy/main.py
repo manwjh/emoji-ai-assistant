@@ -14,6 +14,7 @@ from PyQt5.QtGui import QFont
 from ui.floating_head import FloatingEmojiWindow
 from interaction.emotion_detector import EmotionDetector
 from core.llm_client import LLMClient
+from core.auto_encoder import AutoEncoderScheduler
 import config
 
 
@@ -26,7 +27,7 @@ class EmojiAssistant:
         
         # 设置应用程序属性
         self.app.setApplicationName("Emoji Assistant")
-        self.app.setApplicationVersion("0.1.0")
+        self.app.setApplicationVersion("0.1.1")
         
         # 配置字体，避免字体警告
         self._setup_fonts()
@@ -36,6 +37,7 @@ class EmojiAssistant:
         self.emotion_detector = None
         self.floating_window = None
         self.keyboard_thread = None
+        self.auto_encoder_scheduler = None
         
         # 初始化组件
         self._init_components()
@@ -51,10 +53,35 @@ class EmojiAssistant:
         try:
             # 设置默认字体为系统可用字体
             system_font = QFont()
-            system_font.setFamily("Arial")  # 使用通用字体
+            
+            # 根据操作系统选择合适的字体
+            import platform
+            system = platform.system()
+            
+            if system == "Darwin":  # macOS
+                system_font.setFamily("SF Pro Display")  # macOS 系统字体
+            elif system == "Windows":
+                system_font.setFamily("Segoe UI")  # Windows 系统字体
+            else:  # Linux 或其他
+                system_font.setFamily("DejaVu Sans")  # Linux 通用字体
+            
+            # 如果系统字体不可用，回退到通用字体
+            if not system_font.exactMatch():
+                system_font.setFamily("Arial")
+            
             self.app.setFont(system_font)
+            
+            # 设置字体大小
+            system_font.setPointSize(9)
+            
         except Exception as e:
             print(f"⚠️ 字体设置失败: {e}")
+            # 使用最基本的字体设置
+            try:
+                basic_font = QFont("Arial", 9)
+                self.app.setFont(basic_font)
+            except:
+                pass
     
     def _init_components(self):
         """初始化组件"""
@@ -68,6 +95,9 @@ class EmojiAssistant:
                 llm_client=self.llm_client,
                 emotion_detector=self.emotion_detector
             )
+            
+            # 初始化自动编码调度器
+            self.auto_encoder_scheduler = AutoEncoderScheduler()
             
             # 连接信号
             # self.emotion_detector.emotion_detected.connect(
@@ -108,6 +138,10 @@ class EmojiAssistant:
         try:
             print("🧹 正在清理资源...")
             
+            # 程序退出前执行编码（如果今天还没执行过）
+            if self.auto_encoder_scheduler:
+                self.auto_encoder_scheduler.run_on_exit()
+            
             # 停止线程
             if self.keyboard_thread and self.keyboard_thread.isRunning():
                 self.keyboard_thread.quit()
@@ -118,6 +152,10 @@ class EmojiAssistant:
             # 关闭窗口
             if self.floating_window:
                 self.floating_window.close()
+            
+            # 停止自动编码调度器
+            if self.auto_encoder_scheduler:
+                self.auto_encoder_scheduler.stop()
             
             print("✅ 资源清理完成")
             
@@ -140,8 +178,13 @@ class EmojiAssistant:
             if self.keyboard_thread:
                 self.keyboard_thread.start()
             
+            # 启动自动编码调度器
+            if self.auto_encoder_scheduler:
+                self.auto_encoder_scheduler.start()
+            
             print("✅ Emoji 助手已启动，悬浮在屏幕右下角")
             print("💡 点击 Emoji 开始对话，或输入情绪关键词触发安慰")
+            print("🔄 自动编码调度器已启动，每天凌晨3点自动执行编码")
             
             # 设置定时器检查程序状态
             self._setup_health_check()

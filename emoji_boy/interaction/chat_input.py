@@ -473,7 +473,7 @@ class ChatDialog(QDialog):
                     config_message = """抱歉啦，我没法联通主机。小主请检查一下网络，和告诉我令牌配置，格式如下：
 
 base_url="https://ark.cn-beijing.volces.com/api/v3"
-api_key=41a9d475-45a9-****-****-bbb75505e9bf
+api_key=your_api_key_here
 model="doubao-seed-1-6-flash-250615"
 
 请按照上面的格式输入您的API配置信息。"""
@@ -637,14 +637,14 @@ model="doubao-seed-1-6-flash-250615"
                 else:
                     # 配置失败，保持配置状态
                     error_msg = result.get("error", "未知错误")
-                    self.add_message(f"❌ API配置失败：{error_msg}\n\n请检查配置信息是否正确，格式如下：\n\nbase_url=\"https://ark.cn-beijing.volces.com/api/v3\"\napi_key=41a9d475-45a9-46a2-90bd-bbb75505e9bf\nmodel=\"doubao-seed-1-6-flash-250615\"", False)
+                    self.add_message(f"❌ API配置失败：{error_msg}\n\n请检查配置信息是否正确，格式如下：\n\nbase_url=\"https://ark.cn-beijing.volces.com/api/v3\"\napi_key=your_api_key_here\nmodel=\"doubao-seed-1-6-flash-250615\"", False)
                 
                 self.input_text.setEnabled(True)
                 self.input_text.setFocus()
                 return
             else:
                 # 配置格式不正确
-                self.add_message("❌ 配置格式不正确。请按照以下格式输入：\n\nbase_url=\"https://ark.cn-beijing.volces.com/api/v3\"\napi_key=41a9d475-45a9-46a2-90bd-bbb75505e9bf\nmodel=\"doubao-seed-1-6-flash-250615\"", False)
+                self.add_message("❌ 配置格式不正确。请按照以下格式输入：\n\nbase_url=\"https://ark.cn-beijing.volces.com/api/v3\"\napi_key=your_api_key_here\nmodel=\"doubao-seed-1-6-flash-250615\"", False)
                 self.input_text.setEnabled(True)
                 self.input_text.setFocus()
                 return

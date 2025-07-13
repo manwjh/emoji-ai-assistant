@@ -7,6 +7,15 @@ MemABC is a sophisticated memory management system designed for AI assistants, p
 
 MemABC是一个专为AI助手设计的复杂内存管理系统，提供结构化的内存编码、存储和检索功能。该系统将记忆组织成三个不同的类别（A、B、C），具有专门的编码和处理机制。
 
+### 记忆编码模块描述
+- a2b, 提取聊天对话的重要信心 -> 记忆碎片(24hr)
+- a2c, 提取聊天对话的极为重要事件 -> 深层记忆（每日冥思，整理信息）
+- b2c, 提取过去的信息 -> 深层记忆（冥想，很多人都会不断回顾，以保持对记忆的保持）
+- dream_making, 基于b、c和模型本身知识，进行造梦，这些梦将分享给M。  
+
+思考的过程基本都按照这个固定流程
+回忆 -> MERGE_PROMPT --> MERGE_PROMPT -> 记忆更新
+
 ## Architecture / 架构
 
 ### Memory Categories / 内存类别

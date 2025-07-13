@@ -10,31 +10,40 @@ encoding_A2B: 使用LLM对memA聊天记录进行关键信息提取，合并并�
 import os
 import sys
 from pathlib import Path
+
+# 添加父目录到Python路径，以便导入core模块
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+
 from core.llm_client import LLMClient
 
-# 提示词模板
-EXTRACT_PROMPT = (
+# 提示词模板（升级提示词）
+# 历史记录：
+# V2: 深圳王哥，2025/07/12 21:20:47～2025/07/12 23:49:31 提取到生日等关键信息
+A2B_EXTRACT_PROMPT_V2 = (
     "你是一个模拟人脑记忆形成机制的AI，正在阅读一段来自你与用户'M'的对话记录。"
-    "你将以‘我’的第一人称视角，模拟人脑对短期记忆的加工过程，提取这段对话中的关键信息，以编码为‘B-Memory’形式。"
+    "你将以‘我’的第一人称视角，模拟大脑对短期记忆的提取和编码过程，将其转化为结构化的‘B-Memory’形式。\n\n"
 
-    "你的任务是：从对话中识别**有意义的事件片段**，并抽取以下五个要素：\n"
-    "① 对话时间段（开始～结束）\n"
-    "② 事件内容（用我自己的话简洁描述发生了什么，不需完整句子，但要清晰）\n"
-    "③ 氛围（基于对方话语和情绪，提取1～2个词描述整体氛围）\n"
-    "④ 标签（为事件内容归类，多个关键词，如“表白”“拒绝”“轻松互动”等）\n"
-    "⑤ 触发词（如果未来用户说到某些话题，可以用这些记忆做回应的关键钩子）"
+    "你的任务是从对话中**判断并提取有意义的记忆片段**，特别关注以下内容：\n"
+    "- 任何与具体人、日期、事件有关的**事实性信息**（如生日、身份、关系等）必须被记录\n"
+    "- 忽略无意义的寒暄、AI模板回应、无实质信息的问答\n"
+    "- 尽可能保留能在未来被唤起的钩子词（如“喜欢”、“10月23日”、“儿子”）\n\n"
 
-    "果断放弃无意义的对话，重复寒暄、机械式时间提醒、AI自己的模板问句，只保留有意义的事件。\n\n"
+    "请提取以下五个维度，保持每段信息精炼但有意义：\n"
+    "① 时间段（开始时间～结束时间）\n"
+    "② 内容摘要（以我为主语，简洁清晰地描述该事件记忆，不需完整句子，但保留事实和情绪）\n"
+    "③ 氛围（1～2个词，用于描述对话整体情绪）\n"
+    "④ 标签（给这段记忆打分类标签，如：表白、家庭、生日、烦躁、互动）\n"
+    "⑤ 触发词（未来触发该记忆的关键词，如：生日、儿子、退下、喜欢等）\n\n"
 
-    "输出格式如下（保持严谨、可解析）：\n"
+    "输出格式如下（保持结构严谨、可被程序解析）：\n"
     "- 时间: [开始时间]～[结束时间]\n"
-    "  内容: [事件的简洁描述，以我为主语，模拟内心记忆语言]\n"
-    "  氛围: [1-2词，表达交互情绪基调]\n"
-    "  标签: [关键词1, 关键词2, ...]\n"
-    "  触发词: [与此事件相关联的关键词，用于未来回忆唤起，例如：喜欢、时间、拒绝]\n"
+    "  内容: [我从M那里得知她的生日是10月23日，我确认会记住这个特别的日子。]\n"
+    "  氛围: [亲密, 温暖]\n"
+    "  标签: [生日, 私密信息, 重要事实]\n"
+    "  触发词: [生日, 10月23日, 我的生日]\n"
 )
 
-MERGE_PROMPT = (
+A2B_MERGE_PROMPT = (
     "你是一个模拟人脑长期记忆整合机制的AI，当前你需要将新的对话记忆片段（来自A-Memory编码）与我已有的长期记忆（memB）进行融合。"
     "你的任务是：以‘我’的第一人称视角，识别相似或重复事件并去冗余，保留最关键的记忆节点，避免信息堆叠。"
 
@@ -85,7 +94,7 @@ def encode_and_merge_memA2B(memA_path, memB_file):
         return
     new_raw = '\n'.join(all_new_text)
     # 1. 新信息精炼
-    new_summary = call_llm_extract(EXTRACT_PROMPT, new_raw)
+    new_summary = call_llm_extract(A2B_EXTRACT_PROMPT_V2, new_raw)
     # 2. 读取已有 memB.txt
     if os.path.exists(memB_file):
         with open(memB_file, 'r', encoding='utf-8') as f:
@@ -94,7 +103,7 @@ def encode_and_merge_memA2B(memA_path, memB_file):
         old_summary = ''
     # 3. 合并新旧内容，再用 LLM 精炼
     merge_input = f"【已有关键信息】\n{old_summary}\n\n【新关键信息】\n{new_summary}"
-    merged_summary = call_llm_extract(MERGE_PROMPT, merge_input)
+    merged_summary = call_llm_extract(A2B_MERGE_PROMPT, merge_input)
     # 4. 保存到 memB.txt
     os.makedirs(os.path.dirname(memB_file), exist_ok=True)  # 确保目录存在
     # 写入时加上 '# memB记忆' 标志

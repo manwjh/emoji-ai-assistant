@@ -159,7 +159,7 @@ class ChatStateMachine(QObject):
 配置API：
 如果连接失败，请按以下格式输入配置：
 base_url="https://ark.cn-beijing.volces.com/api/v3"
-api_key=41a9d475-45a9-****-****-bbb75505e9bf
+api_key=your_api_key_here
 model="doubao-seed-1-6-flash-250615"
 
 配置成功后会自动保存，下次启动无需重新配置。"""

@@ -9,10 +9,14 @@ encoding_A2C: 分析 memA 聊天记录，抓取极为重要的信息，智能合
 import os
 import sys
 from pathlib import Path
+
+# 添加父目录到Python路径，以便导入core模块
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+
 from core.llm_client import LLMClient
 
 # 提取极为重要信息的提示词
-EXTRACT_PROMPT = (
+A2C_EXTRACT_PROMPT = (
     "你是对话记录里的'ai'，请以'ai'第一人称视角，从以下聊天记录中只抓取极为重要、对AI长期行为和个性有深远影响的信息，尤其要关注重要的人的重要的事"
     "请丢弃一切琐碎、重复、无关内容，只保留对AI世界观、价值观、行为模式、重大事件等有决定性影响的内容。"
     "输出内容必须简洁、精炼，对于无重复的内容直接追加到memC.txt，且不能改变memC.txt原有结构。"
@@ -21,7 +25,7 @@ EXTRACT_PROMPT = (
 )
 
 # 合并和去重的提示词
-MERGE_PROMPT = (
+A2C_MERGE_PROMPT = (
     "你是AI记忆管理专家，请将新的重要信息与现有的核心记忆进行智能合并。"
     "重要要求："
     "1. 必须保留现有核心记忆中的所有重要信息，不能丢失任何现有内容"
@@ -110,7 +114,7 @@ def update_memC(memC_file, new_content):
         merged_content = new_content.strip()
     else:
         # 使用LLM合并现有内容和新内容
-        merge_prompt = MERGE_PROMPT.format(
+        merge_prompt = A2C_MERGE_PROMPT.format(
             existing_content=existing_content,
             new_content=new_content
         )
@@ -206,7 +210,7 @@ def encode_and_append_memA2C(memA_path, memC_file):
         return
     new_raw = '\n'.join(all_new_text)
     # LLM 精炼极为重要信息
-    new_important = call_llm_extract(EXTRACT_PROMPT, new_raw)
+    new_important = call_llm_extract(A2C_EXTRACT_PROMPT, new_raw)
     # 用新内容整体覆盖 memC.txt
     update_memC(memC_file, new_important)
 

@@ -134,7 +134,20 @@ emoji-ai-assistant/
 
 ## 📋 Development Roadmap
 
-### v0.1.0 ✅ (Current Version)
+### v0.1.1 ✅ (Current Version)
+- [x] Floating desktop emoji virtual assistant
+- [x] Intelligent conversation system (multi-API support)
+- [x] Keyboard emotion detection
+- [x] MemABC memory system foundation
+- [x] Chat state machine and memory management
+- [x] Configuration management system
+- [x] Complete startup script system
+- [x] 🔐 Security Enhancement: API key leak prevention
+- [x] 🔐 Security Enhancement: Pre-commit hook checks
+- [x] 🔐 Security Enhancement: Security scanning tools
+- [x] 🔐 Security Enhancement: Comprehensive security documentation
+
+### v0.1.0 ✅ (Previous Version)
 - [x] Floating desktop emoji virtual assistant
 - [x] Intelligent conversation system (multi-API support)
 - [x] Keyboard emotion detection
@@ -225,6 +238,10 @@ Program logs are saved in:
 ## 📄 License
 
 MIT License - See [LICENSE](LICENSE) file for details
+
+## 📝 Changelog
+
+For detailed feature updates and bug fixes, please see [CHANGELOG.md](CHANGELOG.md)
 
 ## 🤝 Contributing
 
