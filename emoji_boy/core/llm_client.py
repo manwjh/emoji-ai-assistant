@@ -6,7 +6,7 @@ import os
 import json
 import time
 import requests
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 import config
 from .config_manager import config_manager
 
@@ -450,4 +450,280 @@ class LLMClient:
         
         # 清除配置缓存，强制重新加载
         self._config_cache = None
-        self._config_loaded = False 
+        self._config_loaded = False
+    
+    def get_response_with_intent(self, message: str) -> str:
+        """
+        获取模型响应，支持意图识别和执行功能
+        
+        流程：用户输入 → 意图识别 → 功能执行 → 原始输入+执行结果 → LLM对话
+        
+        Args:
+            message: 用户消息
+            
+        Returns:
+            模型响应文本
+        """
+        try:
+            print(f"📝 用户输入: {message}")
+            
+            # 第一步：使用新的意图引擎进行意图识别和执行
+            import sys
+            import os
+            
+            # 添加brain_agent到Python路径
+            brain_agent_path = os.path.join(os.path.dirname(__file__), '..', 'brain_agent')
+            if brain_agent_path not in sys.path:
+                sys.path.insert(0, brain_agent_path)
+            
+            # 导入意图引擎
+            from intent_engine import IntentEngine
+            
+            # 创建意图引擎实例
+            # 优先使用当前LLM客户端的API密钥，如果没有则从环境变量获取
+            api_key = self.api_key or os.getenv("DOUBAO_API_KEY")
+            intent_engine = IntentEngine(api_key=api_key)
+            
+            # 处理消息（意图识别 + 执行）
+            process_result = intent_engine.process_message(message)
+            
+            intent_type = process_result.get('intent_data', {}).get('intent_type', 'unknown')
+            confidence = process_result.get('intent_data', {}).get('confidence', 0.0)
+            success = process_result.get('success', False)
+            execution_result = process_result.get('response', '')
+            
+            print(f"🧠 意图识别: {intent_type} (置信度: {confidence:.2f})")
+            print(f"⚡ 执行结果: {'成功' if success else '失败'}")
+            
+            # 第二步：构建增强的输入
+            enhanced_message = message
+            
+            # 如果有执行结果，将其添加到原始输入中
+            if success and execution_result:
+                enhanced_message = f"{message}\n\n[系统执行结果]: {execution_result}"
+                print(f"🔗 增强输入: {enhanced_message[:100]}...")
+            elif not success:
+                # 执行失败，添加错误信息
+                error_msg = process_result.get('error', '执行失败')
+                enhanced_message = f"{message}\n\n[系统执行失败]: {error_msg}"
+                print(f"⚠️ 执行失败: {error_msg}")
+            
+            # 第三步：使用增强的输入生成LLM回复
+            final_response = self.get_response(enhanced_message)
+            
+            print(f"💬 生成回复: {final_response[:100]}...")
+            return final_response
+                
+        except Exception as e:
+            print(f"❌ 意图识别响应失败: {e}")
+            import traceback
+            traceback.print_exc()
+            return self.get_response(message)
+    
+    def _generate_comprehensive_response(self, user_message: str, intent_type: str, search_reference: str = None, search_content: List[Dict[str, str]] = None) -> str:
+        """
+        生成综合回复
+        
+        Args:
+            user_message: 用户消息
+            intent_type: 意图类型
+            search_reference: 搜索参考资料
+            search_content: 爬取的搜索结果内容
+            
+        Returns:
+            综合回复文本
+        """
+        try:
+            # 构建增强的系统提示词
+            enhanced_system_prompt = self._build_enhanced_system_prompt(intent_type, search_reference, search_content)
+            
+            # 临时设置增强的系统提示词
+            original_prompt = self.system_prompt
+            self.system_prompt = enhanced_system_prompt
+            
+            # 生成回复
+            response = self.get_response(user_message)
+            
+            # 恢复原始系统提示词
+            self.system_prompt = original_prompt
+            
+            return response
+            
+        except Exception as e:
+            print(f"❌ 综合回复生成失败: {e}")
+            return self.get_response(user_message)
+    
+    def _build_enhanced_system_prompt(self, intent_type: str, search_reference: str = None, search_content: List[Dict[str, str]] = None) -> str:
+        """
+        构建增强的系统提示词
+        
+        Args:
+            intent_type: 意图类型
+            search_reference: 搜索参考资料
+            search_content: 爬取的搜索结果内容
+            
+        Returns:
+            增强的系统提示词
+        """
+        base_prompt = self.system_prompt
+        
+        # 根据意图类型添加特定指导
+        intent_guidance = ""
+        if intent_type == 'search':
+            intent_guidance = """
+搜索意图指导：
+- 用户需要查找信息或获取最新资料
+- 请基于搜索结果提供准确、有用的信息
+- 如果搜索结果不够准确，请说明并提供建议
+- 保持友好和专业的语气
+- 引用具体的搜索结果来源
+"""
+        elif intent_type == 'chat':
+            intent_guidance = """
+聊天意图指导：
+- 用户希望进行轻松愉快的对话
+- 保持温暖、友善的语气
+- 适当使用emoji表情
+- 关注用户的情感需求
+"""
+        elif intent_type == 'config':
+            intent_guidance = """
+配置意图指导：
+- 用户需要配置系统参数
+- 提供清晰的配置指导
+- 确保配置信息的安全性
+- 验证配置的有效性
+"""
+        elif intent_type == 'help':
+            intent_guidance = """
+帮助意图指导：
+- 用户需要了解功能或使用方法
+- 提供详细、易懂的说明
+- 使用具体的例子
+- 引导用户正确使用功能
+"""
+        elif intent_type == 'meditation':
+            intent_guidance = """
+冥想意图指导：
+- 用户需要进行记忆编码或冥想
+- 提供专业的冥想指导
+- 确保冥想过程的安全性
+- 关注用户的身心状态
+"""
+        
+        # 添加搜索参考资料
+        search_context = ""
+        if search_reference:
+            search_context = f"""
+搜索参考资料：
+{search_reference}
+"""
+        
+        # 添加爬取的搜索结果内容
+        if search_content:
+            from .search_module import search_module
+            search_summary = search_module.get_search_summary(search_content)
+            search_context += f"""
+
+详细搜索结果：
+{search_summary}
+
+请基于以上搜索结果回答用户问题，确保信息的准确性和时效性。可以引用具体的搜索结果来源。
+"""
+        elif search_reference:
+            search_context += """
+
+请基于以上搜索结果回答用户问题，确保信息的准确性和时效性。
+"""
+        
+        # 组合最终的提示词
+        enhanced_prompt = f"{base_prompt}\n\n{intent_guidance}\n{search_context}"
+        
+        return enhanced_prompt.strip()
+    
+    def get_response_with_search(self, message: str) -> str:
+        """
+        获取模型响应，支持搜索功能（向后兼容）
+        
+        Args:
+            message: 用户消息
+            
+        Returns:
+            模型响应文本
+        """
+        return self.get_response_with_intent(message)
+    
+    def _should_search(self, message: str) -> bool:
+        """判断是否需要搜索"""
+        search_keywords = [
+            '搜索', '查找', '找', '帮我找', '帮我搜索', '帮我查找',
+            'search', 'find', 'look for', 'help me find'
+        ]
+        
+        message_lower = message.lower()
+        return any(keyword in message_lower for keyword in search_keywords)
+    
+    def _perform_search_with_query(self, query: str) -> Dict[str, Any]:
+        """使用指定查询执行搜索"""
+        try:
+            from .search_module import search_module
+            
+            if not query:
+                return {
+                    'success': False,
+                    'error': '搜索查询为空',
+                    'message': '❌ 搜索查询不能为空'
+                }
+            
+            # 执行智能搜索
+            result = search_module.smart_search(query)
+            return result
+            
+        except Exception as e:
+            return {
+                'success': False,
+                'error': str(e),
+                'message': f'❌ 搜索执行失败: {str(e)}'
+            }
+    
+    def _perform_search(self, message: str) -> Dict[str, Any]:
+        """执行搜索（向后兼容）"""
+        try:
+            from .search_module import search_module
+            
+            # 提取搜索查询
+            query = self._extract_search_query(message)
+            if not query:
+                return {
+                    'success': False,
+                    'error': '无法提取搜索查询',
+                    'message': '❌ 无法理解搜索请求'
+                }
+            
+            # 执行智能搜索
+            result = search_module.smart_search(query)
+            return result
+            
+        except Exception as e:
+            return {
+                'success': False,
+                'error': str(e),
+                'message': f'❌ 搜索执行失败: {str(e)}'
+            }
+    
+    def _extract_search_query(self, message: str) -> str:
+        """从消息中提取搜索查询"""
+        # 移除搜索关键词
+        search_keywords = [
+            '搜索', '查找', '找', '帮我找', '帮我搜索', '帮我查找',
+            'search', 'find', 'look for', 'help me find'
+        ]
+        
+        query = message
+        for keyword in search_keywords:
+            if keyword in query.lower():
+                # 移除关键词及其前后的空格
+                query = query.replace(keyword, '').replace('帮我', '').strip()
+                break
+        
+        return query 

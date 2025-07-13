@@ -114,8 +114,17 @@ def encode_and_merge_memA2B(memA_path, memB_file):
         f.write(output + '\n')
     print(f"[encoding_A2B] memB.txt 精炼合并完成 → {memB_file}")
 
+def encode_a2b():
+    """A2B编码主函数，返回是否成功"""
+    try:
+        check_llm_env()
+        memA_dir = os.path.join(os.path.dirname(__file__), 'memA')
+        memB_file = os.path.join(os.path.dirname(__file__), 'memB', 'memB.txt')
+        encode_and_merge_memA2B(memA_dir, memB_file)
+        return True
+    except Exception as e:
+        print(f"A2B编码失败: {e}")
+        return False
+
 if __name__ == "__main__":
-    check_llm_env()
-    memA_dir = os.path.join(os.path.dirname(__file__), 'memA')
-    memB_file = os.path.join(os.path.dirname(__file__), 'memB', 'memB.txt')
-    encode_and_merge_memA2B(memA_dir, memB_file) 
+    encode_a2b() 

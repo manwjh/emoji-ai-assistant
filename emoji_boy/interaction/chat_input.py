@@ -827,7 +827,8 @@ class ResponseThread(QThread):
     def run(self):
         """运行线程"""
         try:
-            response = self.llm_client.get_response(self.message)
+            # 使用意图识别增强的响应方法
+            response = self.llm_client.get_response_with_intent(self.message)
             self.response_received.emit(self.message, response)
         except Exception as e:
             self.error_occurred.emit(str(e)) 

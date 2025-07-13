@@ -8,9 +8,10 @@ from typing import Optional
 # API配置
 OPENAI_API_KEY: Optional[str] = None
 HUGGINGFACE_API_KEY: Optional[str] = None
+DOUBAO_API_KEY: Optional[str] = None
 
 # 默认API类型
-DEFAULT_API_TYPE = "mock"  # "openai", "huggingface", "mock"
+DEFAULT_API_TYPE = "mock"  # "openai", "huggingface", "doubao", "mock"
 
 # 模型配置
 DEFAULT_MODEL = {
@@ -49,10 +50,11 @@ SHOW_CONSOLE = True
 
 def load_env_vars():
     """从环境变量加载配置"""
-    global OPENAI_API_KEY, HUGGINGFACE_API_KEY
+    global OPENAI_API_KEY, HUGGINGFACE_API_KEY, DOUBAO_API_KEY
     
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
     HUGGINGFACE_API_KEY = os.getenv("HUGGINGFACE_API_KEY")
+    DOUBAO_API_KEY = os.getenv("DOUBAO_API_KEY")
 
 def get_api_key(api_type: str) -> Optional[str]:
     """获取指定API类型的密钥"""
@@ -60,6 +62,8 @@ def get_api_key(api_type: str) -> Optional[str]:
         return OPENAI_API_KEY
     elif api_type == "huggingface":
         return HUGGINGFACE_API_KEY
+    elif api_type == "doubao":
+        return DOUBAO_API_KEY
     return None
 
 def is_api_configured(api_type: str) -> bool:

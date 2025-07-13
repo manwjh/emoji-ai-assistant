@@ -7,6 +7,9 @@ OPENAI_API_KEY=your_openai_api_key_here
 # HuggingFace API配置
 HUGGINGFACE_API_KEY=your_huggingface_api_key_here
 
+# 豆包API配置（Brain Agent使用）
+DOUBAO_API_KEY=your_doubao_api_key_here
+
 # 其他配置（可选）
 # DEBUG_MODE=true
 # LOG_LEVEL=DEBUG 

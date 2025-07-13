@@ -94,9 +94,7 @@ class EmojiAssistant:
             
             # 初始化自动编码调度器
             self.auto_encoder_scheduler = AutoEncoderScheduler()
-            
-
-            
+                        
             print("✅ 组件初始化成功")
             
         except Exception as e:
@@ -135,7 +133,6 @@ class EmojiAssistant:
             if self.auto_encoder_scheduler:
                 self.auto_encoder_scheduler.run_on_exit()
             
-
             
             # 关闭窗口
             if self.floating_window:
@@ -161,9 +158,7 @@ class EmojiAssistant:
                 # 确保窗口在最顶层
                 self.floating_window.raise_()
                 self.floating_window.activateWindow()
-            
-
-            
+        
             # 启动自动编码调度器
             if self.auto_encoder_scheduler:
                 self.auto_encoder_scheduler.start()

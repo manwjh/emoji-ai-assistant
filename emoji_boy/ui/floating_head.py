@@ -34,7 +34,7 @@ class FloatingEmojiWindow(QWidget):
         )
         self.setAttribute(Qt.WA_TranslucentBackground)  # 透明背景
         self.setAttribute(Qt.WA_ShowWithoutActivating)  # 显示时不激活
-        self.setAttribute(Qt.WA_NoSystemBackground)  # 无系统背景
+        self.setAttribute(Qt.WA_NoSystemBackground)     # 无系统背景
         self.setAttribute(Qt.WA_TranslucentBackground)  # 确保完全透明
         
         # 窗口大小和位置

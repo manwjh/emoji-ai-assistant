@@ -1,14 +1,17 @@
-# Emoji AI Assistant v0.1.1
+# Emoji AI Assistant v0.2.0
 
-This is a security-enhanced release, see [CHANGELOG.md](CHANGELOG.md) for details.
+**Screw MCP, let's build a Brain Agent!** 🚀
 
-A minimalist yet feature-complete desktop Emoji virtual assistant with floating desktop interface, intelligent conversation, and brain-like memory system.
+This is a major upgrade with Brain Agent system, see [CHANGELOG.md](CHANGELOG.md) for details.
+
+A minimalist yet feature-complete desktop Emoji virtual assistant with floating desktop interface, intelligent conversation, brain-like memory system, and brain-like intent recognition system.
 
 ## 🎯 Features
 
 - 🎭 **Floating Desktop Emoji** - Cute 😺 emoji that can be dragged and stays on top
 - 💬 **Intelligent Conversation System** - Integrated OpenAI/HuggingFace API with context memory
 - 🧠 **MemABC Memory System** - Experimental brain-like memory architecture with encoding and retrieval
+- 🧠 **Brain Agent System** - Experimental brain-like intent architecture with intent recognition + capability execution + dynamic code generation
 - 🎨 **Modern UI** - Elegant PyQt5-based interface with animation effects
 - 🔧 **Configuration Management** - Flexible configuration system supporting multiple APIs
 - 🚀 **One-Click Launch** - Complete startup scripts with automatic environment setup
@@ -64,6 +67,9 @@ python run.py
 - Integrates multiple AI models (OpenAI GPT, HuggingFace, Mock mode)
 - Intelligent responses with emoji expressions
 - Automatic conversation history saving and management
+- **Brain-like Intent Recognition**: Automatically recognizes user intent and executes corresponding functions
+- **Dynamic Code Generation**: Automatically generates and safely executes Python code based on intent
+- **Automatic Function Execution**: Time queries, system information, mathematical calculations, search, etc.
 
 
 
@@ -74,6 +80,14 @@ python run.py
 - Supports A2B and A2C encoding conversion
 - Automatic backup and memory management
 
+### 🧠 Brain Agent System
+- **Intent Recognition**: Supports 7 intent types (search, chat, config, help, meditation, system, unknown)
+- **Skill Network**: 6 core plugins (system, chat, search, config, help, meditation)
+- **Dynamic Execution**: Automatically generates and safely executes Python code based on intent
+- **Perception-Cognition-Execution Loop**: Mimics human brain's information processing flow
+- **Memory Mechanism**: Simulates human brain's memory and recall processes
+- **Behavioral Pattern Learning**: Optimizes response strategies based on interaction history
+
 ## 🏗️ Project Structure
 
 ```
@@ -82,6 +96,19 @@ emoji-ai-assistant/
 │   ├── ui/                       # User interface module
 │   ├── interaction/              # Interaction module
 │   ├── core/                     # Core module
+│   ├── brain_agent/              # 🧠 Brain Agent System
+│   │   ├── intent_engine.py      # Intent recognition engine
+│   │   ├── plugin_registry.py    # Skill network registry
+│   │   ├── plugins/              # Skill plugins directory
+│   │   │   ├── system_plugin.py  # System operation plugin
+│   │   │   ├── chat_plugin.py    # Chat communication plugin
+│   │   │   ├── search_plugin.py  # Search functionality plugin
+│   │   │   ├── config_plugin.py  # Configuration management plugin
+│   │   │   ├── help_plugin.py    # Help guidance plugin
+│   │   │   └── meditation_plugin.py # Meditation guidance plugin
+│   │   ├── test.py               # Test framework
+│   │   ├── test.sh               # Automated test script
+│   │   └── test_vectors.txt      # Test vector dataset
 │   ├── MemABC/                   # Memory system
 │   └── ...                       # Other config and script files
 ├── scripts/                      # Utility scripts
@@ -101,7 +128,19 @@ emoji-ai-assistant/
 
 ## 📋 Development Roadmap
 
-### v0.1.1 ✅ (Current Version)
+### v0.2.0 ✅ (Current Version) - Brain Agent System
+- [x] 🧠 Brain-like intent recognition engine
+- [x] 🧠 Skill network system (6 core plugins)
+- [x] 🧠 Dynamic code generation and safe execution
+- [x] 🧠 Intent recognition and execution integration
+- [x] 🧠 Module independence support
+- [x] 🧠 Complete test framework
+- [x] 🧠 Automated test scripts
+- [x] 🧠 Compatibility import system
+- [x] 🧠 Unified API key management
+- [x] 🧠 Secure sandbox execution environment
+
+### v0.1.1 ✅ (Previous Version) - Security Enhanced
 - [x] Floating desktop emoji virtual assistant
 - [x] Intelligent conversation system (multi-API support)
 - [x] MemABC memory system foundation
@@ -122,13 +161,17 @@ emoji-ai-assistant/
 - [x] Complete startup script system
 
 ### Future Plans
+- [ ] 🧠 More intent types and skill plugins
+- [ ] 🧠 Intent recognition accuracy optimization
+- [ ] 🧠 Code generation capability enhancement
+- [ ] 🧠 Multi-modal intent recognition (image, speech)
+- [ ] 🧠 Distributed skill network
+- [ ] 🧠 Brain-like learning mechanism optimization
 - [ ] Speech recognition and synthesis
 - [ ] More emoji animation effects
 - [ ] Custom themes and styling
-- [ ] Plugin system support
 - [ ] Multi-language support
 - [ ] MemABC memory system optimization
-- [ ] Cloud memory synchronization
 - [ ] Mobile platform support
 
 ## ⚠️ Important Notes
