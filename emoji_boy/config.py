@@ -24,15 +24,7 @@ WINDOW_SIZE = (80, 80)  # Emoji窗口大小
 BUBBLE_DURATION = 5000  # 气泡显示时长（毫秒）
 WINDOW_POSITION = "bottom_right"  # 窗口位置
 
-# 情绪检测配置
-EMOTION_WINDOW_SIZE = 50  # 情绪检测窗口大小
-EMOTION_THRESHOLD = 3  # 情绪检测阈值
-EMOTION_COOLDOWN = 10  # 情绪检测冷却时间（秒）
 
-# 键盘监听配置
-KEYBOARD_ENABLED = True
-IGNORE_SPECIAL_KEYS = True
-IGNORE_MODIFIER_KEYS = True
 
 # 日志配置
 LOG_LEVEL = "INFO"  # DEBUG, INFO, WARNING, ERROR

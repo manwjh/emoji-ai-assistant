@@ -20,11 +20,10 @@ class FloatingEmojiWindow(QWidget):
     # 信号定义
     emoji_clicked = pyqtSignal()
     
-    def __init__(self, llm_client=None, emotion_detector=None):
+    def __init__(self, llm_client=None):
         super().__init__()
         
         self.llm_client = llm_client
-        self.emotion_detector = emotion_detector
         
         # 窗口属性设置 - 优化以减少对其他程序的影响
         self.setWindowFlags(

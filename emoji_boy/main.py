@@ -12,7 +12,7 @@ from PyQt5.QtCore import QThread, QTimer
 from PyQt5.QtGui import QFont
 
 from ui.floating_head import FloatingEmojiWindow
-from interaction.emotion_detector import EmotionDetector
+
 from core.llm_client import LLMClient
 from core.auto_encoder import AutoEncoderScheduler
 import config
@@ -34,9 +34,7 @@ class EmojiAssistant:
         
         # 初始化核心组件
         self.llm_client = None
-        self.emotion_detector = None
         self.floating_window = None
-        self.keyboard_thread = None
         self.auto_encoder_scheduler = None
         
         # 初始化组件
@@ -88,21 +86,16 @@ class EmojiAssistant:
         try:
             # 初始化核心组件
             self.llm_client = LLMClient()
-            self.emotion_detector = EmotionDetector()
             
             # 初始化UI组件
             self.floating_window = FloatingEmojiWindow(
-                llm_client=self.llm_client,
-                emotion_detector=self.emotion_detector
+                llm_client=self.llm_client
             )
             
             # 初始化自动编码调度器
             self.auto_encoder_scheduler = AutoEncoderScheduler()
             
-            # 连接信号
-            # self.emotion_detector.emotion_detected.connect(
-            #     self.floating_window.show_emotion_bubble
-            # )
+
             
             print("✅ 组件初始化成功")
             
@@ -142,12 +135,7 @@ class EmojiAssistant:
             if self.auto_encoder_scheduler:
                 self.auto_encoder_scheduler.run_on_exit()
             
-            # 停止线程
-            if self.keyboard_thread and self.keyboard_thread.isRunning():
-                self.keyboard_thread.quit()
-                self.keyboard_thread.wait(3000)  # 等待3秒
-                if self.keyboard_thread.isRunning():
-                    self.keyboard_thread.terminate()
+
             
             # 关闭窗口
             if self.floating_window:
@@ -174,16 +162,14 @@ class EmojiAssistant:
                 self.floating_window.raise_()
                 self.floating_window.activateWindow()
             
-            # 启动键盘监听
-            if self.keyboard_thread:
-                self.keyboard_thread.start()
+
             
             # 启动自动编码调度器
             if self.auto_encoder_scheduler:
                 self.auto_encoder_scheduler.start()
             
             print("✅ Emoji 助手已启动，悬浮在屏幕右下角")
-            print("💡 点击 Emoji 开始对话，或输入情绪关键词触发安慰")
+            print("💡 点击 Emoji 开始对话")
             print("🔄 自动编码调度器已启动，每天凌晨3点自动执行编码")
             
             # 设置定时器检查程序状态
@@ -209,10 +195,6 @@ class EmojiAssistant:
     def _health_check(self):
         """健康检查"""
         try:
-            # 检查线程状态
-            if self.keyboard_thread and not self.keyboard_thread.isRunning():
-                print("⚠️ 键盘监听线程异常停止")
-            
             # 检查悬浮窗口是否在最顶层
             if self.floating_window and self.floating_window.isVisible():
                 # 确保悬浮窗口保持在最顶层

@@ -2,7 +2,7 @@
 
 This is a security-enhanced release, see [CHANGELOG.md](CHANGELOG.md) for details.
 
-A minimalist yet feature-complete desktop Emoji virtual assistant with floating desktop interface, intelligent conversation, emotion detection, and brain-like memory system.
+A minimalist yet feature-complete desktop Emoji virtual assistant with floating desktop interface, intelligent conversation, and brain-like memory system.
 
 ## 🎯 Features
 
@@ -57,7 +57,6 @@ python run.py
 ### Basic Operations
 - **Click Emoji** - Open chat dialog to start conversation
 - **Drag Emoji** - Move assistant to any position on screen
-- **Keyboard Input** - Program automatically detects emotion keywords and provides comfort
 - **Ctrl+C** - Graceful exit
 
 ### Conversation Features
@@ -66,12 +65,7 @@ python run.py
 - Intelligent responses with emoji expressions
 - Automatic conversation history saving and management
 
-### Emotion Detection
-The program detects the following emotion keywords in real-time:
-- **Negative Emotions**: 烦 (annoyed), 累 (tired), 唉 (sigh), 难过 (sad), 😢, 😭
-- **Angry Emotions**: 操 (damn), 妈的 (damn), 气死 (angry), 😠, 😡
-- **Exhausted Emotions**: 累 (tired), 疲惫 (exhausted), 困 (sleepy), 😴, 😪
-- **Positive Emotions**: 开心 (happy), 高兴 (joyful), 棒 (great), 😊, 😄
+
 
 ### MemABC Memory System
 - **MemA**: Raw memory storage (daily files)
@@ -101,7 +95,7 @@ emoji-ai-assistant/
 - **PyQt5** - Modern GUI framework
 - **OpenAI API** - GPT model support
 - **HuggingFace API** - Open-source model support
-- **pynput** - Keyboard monitoring library
+
 - **requests** - HTTP request library
 - **threading** - Multi-threading support
 
@@ -110,7 +104,6 @@ emoji-ai-assistant/
 ### v0.1.1 ✅ (Current Version)
 - [x] Floating desktop emoji virtual assistant
 - [x] Intelligent conversation system (multi-API support)
-- [x] Keyboard emotion detection
 - [x] MemABC memory system foundation
 - [x] Chat state machine and memory management
 - [x] Configuration management system
@@ -123,7 +116,6 @@ emoji-ai-assistant/
 ### v0.1.0 ✅ (Previous Version)
 - [x] Floating desktop emoji virtual assistant
 - [x] Intelligent conversation system (multi-API support)
-- [x] Keyboard emotion detection
 - [x] MemABC memory system foundation
 - [x] Chat state machine and memory management
 - [x] Configuration management system
@@ -147,15 +139,11 @@ emoji-ai-assistant/
 - **Memory**: At least 512MB available RAM
 - **Storage**: At least 100MB available space
 
-### Permission Requirements
-- **Keyboard Monitoring**: Requires system permissions
-  - macOS: System Preferences > Security & Privacy > Accessibility
-  - Windows: Run as Administrator
-  - Linux: Ensure X11 permissions
+
 
 ### Security Reminders
 - **API Costs**: Using OpenAI API incurs costs, please monitor usage
-- **Privacy Protection**: Keyboard monitoring only detects emotion keywords, doesn't record full text
+
 - **Data Storage**: Conversation history and memory data stored locally, remember to backup
 
 ## 🐛 Troubleshooting

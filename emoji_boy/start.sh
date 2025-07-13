@@ -31,7 +31,7 @@ echo "✅ 虚拟环境已激活: $VIRTUAL_ENV"
 # 3. 检查依赖是否已全部安装
 NEED_INSTALL=0
 python -c "import PyQt5" 2>/dev/null || NEED_INSTALL=1
-python -c "import pynput" 2>/dev/null || NEED_INSTALL=1
+
 python -c "import requests" 2>/dev/null || NEED_INSTALL=1
 python -c "import typing_extensions" 2>/dev/null || NEED_INSTALL=1
 
