@@ -467,7 +467,8 @@ class ChatDialog(QDialog):
                 
                 if result["success"]:
                     self.state_machine.change_state(ChatState.NORMAL)
-                    self.add_message("小主好！", False)
+                    # 让LLM自己生成初始对话
+                    self._generate_initial_greeting()
                 else:
                     self.state_machine.change_state(ChatState.CONFIGURING)
                     config_message = """抱歉啦，我没法联通主机。小主请检查一下网络，和告诉我令牌配置，格式如下：
@@ -635,6 +636,36 @@ model="doubao-seed-1-6-flash-250615"
             print(f"B2C全面冥想异常：{e}")
             import traceback
             traceback.print_exc()
+    
+    def _generate_initial_greeting(self):
+        """让LLM自己生成初始对话"""
+        try:
+            # 显示临时状态
+            self.show_temp_message("正在生成个性化问候...")
+            
+            # 创建响应线程来生成初始问候
+            self.response_thread = InitialGreetingThread(self.llm_client)
+            self.response_thread.response_received.connect(self._on_initial_greeting_received)
+            self.response_thread.error_occurred.connect(self._on_initial_greeting_error)
+            self.response_thread.start()
+            
+        except Exception as e:
+            print(f"❌ 生成初始问候失败: {e}")
+            # 如果生成失败，使用默认问候
+            self.remove_temp_message()
+            self.add_message("你好呀！我是小喵，很高兴见到你 😺", False)
+    
+    def _on_initial_greeting_received(self, greeting):
+        """接收到初始问候"""
+        self.remove_temp_message()
+        self.add_message(greeting, False)
+    
+    def _on_initial_greeting_error(self, error_message):
+        """初始问候生成错误"""
+        print(f"❌ 初始问候生成错误: {error_message}")
+        self.remove_temp_message()
+        # 使用默认问候作为备选
+        self.add_message("你好呀！我是小喵，很高兴见到你 😺", False)
     
 
     
@@ -832,3 +863,24 @@ class ResponseThread(QThread):
             self.response_received.emit(self.message, response)
         except Exception as e:
             self.error_occurred.emit(str(e)) 
+
+
+class InitialGreetingThread(QThread):
+    """初始问候生成线程"""
+    
+    response_received = pyqtSignal(str)  # greeting
+    error_occurred = pyqtSignal(str)  # error_message
+    
+    def __init__(self, llm_client):
+        super().__init__()
+        self.llm_client = llm_client
+    
+    def run(self):
+        """运行线程"""
+        try:
+            # 生成个性化的初始问候
+            greeting_prompt = "请根据你的人格特征和记忆，生成一个自然、个性化的开场白来问候用户。要体现你的性格特点，如果有记忆中的用户信息也要体现出来。保持温暖、友好的语气。"
+            greeting = self.llm_client.get_response(greeting_prompt)
+            self.response_received.emit(greeting)
+        except Exception as e:
+            self.error_occurred.emit(str(e))

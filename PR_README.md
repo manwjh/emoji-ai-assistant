@@ -1,4 +1,4 @@
-# 🚀 愿LLM原力与你同在！Emoji AI Assistant v0.2.0 - 类脑Agent系统
+# 🚀 愿LLM原力与你同在！Emoji AI Assistant v0.2.2 - 类脑Agent系统
 
 > **去他大爷的MCP，做个类脑Agent试试！** 🧠⚡
 
@@ -13,7 +13,7 @@
 
 ### 🎭 桌面浮动Emoji虚拟人
 - **可爱表情**: 😺 可拖拽移动，总在最前显示
-- **智能对话**: 集成OpenAI/HuggingFace API，支持上下文记忆
+- **智能对话**: 集成OpenAI/HuggingFace API，支持上下文记忆，AI初始对话由大模型根据人格和记忆自动生成，不再使用固定开场白
 - **现代化UI**: 基于PyQt5的优雅界面，支持动画效果
 
 ### 🧠 MemABC记忆系统

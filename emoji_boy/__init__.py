@@ -6,5 +6,5 @@ Minimal Floating Emoji Assistant
 基本气泡对话显示、点击互动触发对话输入、简单集成大模型生成回复等功能。
 """
 
-__version__ = "0.1.1"
+__version__ = "0.2.2"
 __author__ = "Emoji Assistant Team" 

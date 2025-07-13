@@ -1,5 +1,7 @@
 # Packaging 目录
 
+当前主程序版本 v0.2.2
+
 这个目录包含了 emoji-ai-assistant 项目的所有打包相关文件。
 
 ## 文件说明

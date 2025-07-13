@@ -13,6 +13,7 @@ MemABC是一个专为AI助手设计的复杂内存管理系统，提供结构化
 - a2b, 提取聊天对话的重要信心 -> 记忆碎片(24hr)
 - a2c, 提取聊天对话的极为重要事件 -> 深层记忆（每日冥思，整理信息）
 - b2c, 提取过去的信息 -> 深层记忆（冥想，很多人都会不断回顾，以保持对记忆的保持）
+- memC_to_system_prompt, 使用深层记忆修改系统提示词，类似深层记忆对人行为的影响，这样实现：经历-->影响深层记忆-->重塑人物性格-->影响后续经历，形成闭环。
 - dream_making, 基于b、c和模型本身知识，进行造梦，这些梦将分享给M。  
 
 思考的过程基本都按照这个固定流程
@@ -34,20 +35,23 @@ MemABC是一个专为AI助手设计的复杂内存管理系统，提供结构化
 
 ```
 MemABC/
-├── a2b.sh              # Memory encoding script (A to B) / 内存编码脚本 (A到B)
-├── a2c.sh              # Memory encoding script (A to C) / 内存编码脚本 (A到C)
-├── b2c.sh              # Memory encoding script (B to C) / 内存编码脚本 (B到C)
-├── encoding_a2b.py     # Python implementation of A to B encoding / A到B编码的Python实现
-├── encoding_a2c.py     # Python implementation of A to C encoding / A到C编码的Python实现
-├── encoding_b2c.py     # Python implementation of B to C encoding / B到C编码的Python实现
-├── memA/               # Primary memory storage / 主要内存存储
-│   └── 20250712.txt    # Daily memory files / 每日内存文件
-├── memB/               # Secondary processed memory / 次要处理内存
-│   └── memB.txt        # Categorized memory data / 分类内存数据
-└── memC/               # Long-term memory storage / 长期内存存储
-    ├── memC.txt        # Current long-term memory / 当前长期内存
-    ├── memC_back.txt   # Backup memory file / 备份内存文件
-    └── memC.txt.backup # Additional backup / 额外备份
+├── a2b.sh                      # Memory encoding script (A to B) / 内存编码脚本 (A到B)
+├── a2c.sh                      # Memory encoding script (A to C) / 内存编码脚本 (A到C)
+├── b2c.sh                      # Memory encoding script (B to C) / 内存编码脚本 (B到C)
+├── memC_to_system_prompt.sh    # Generate system prompt from memC / 从memC生成系统提示词
+├── encoding_a2b.py             # Python implementation of A to B encoding / A到B编码的Python实现
+├── encoding_a2c.py             # Python implementation of A to C encoding / A到C编码的Python实现
+├── encoding_b2c.py             # Python implementation of B to C encoding / B到C编码的Python实现
+├── memC_to_system_prompt.py    # Python implementation of memC to system prompt / memC到系统提示词的Python实现
+├── memA/                       # Primary memory storage / 主要内存存储
+│   └── 20250712.txt            # Daily memory files / 每日内存文件
+├── memB/                       # Secondary processed memory / 次要处理内存
+│   └── memB.txt                # Categorized memory data / 分类内存数据
+├── memC/                       # Long-term memory storage / 长期内存存储
+│   ├── memC.txt                # Current long-term memory / 当前长期内存
+│   ├── memC_back.txt           # Backup memory file / 备份内存文件
+│   └── memC.txt.backup         # Additional backup / 额外备份
+└── systemprompt.txt            # Generated system prompt / 生成的系统提示词
 ```
 
 ## Features / 功能特性
@@ -56,11 +60,14 @@ MemABC/
 - **A2B Encoding**: Converts raw memories from MemA to processed format in MemB
 - **A2C Encoding**: Archives important memories to long-term storage in MemC
 - **B2C Encoding**: Further distills and archives categorized memories from MemB to MemC
+- **MemC to System Prompt**: Generates AI personality and behavior patterns from deep memories
 - **Automatic Backup**: Built-in backup mechanisms for data integrity
+- AI初始对话现在由大模型根据人格和记忆自动生成，不再使用固定开场白。
 
 - **A2B编码**: 将MemA中的原始记忆转换为MemB中的处理格式
 - **A2C编码**: 将重要记忆归档到MemC的长期存储中
 - **B2C编码**: 将MemB中的分类记忆进一步提炼并归档到MemC
+- **MemC到系统提示词**: 从深层记忆生成AI人格和行为模式
 - **自动备份**: 内置备份机制确保数据完整性
 
 ### Memory Processing / 内存处理
@@ -79,6 +86,12 @@ MemABC/
 
 # Encode memories from A to C / 将记忆从A编码到C
 ./a2c.sh
+
+# Encode memories from B to C / 将记忆从B编码到C
+./b2c.sh
+
+# Generate system prompt from memC / 从memC生成系统提示词
+./memC_to_system_prompt.sh
 ```
 
 ### Python Scripts / Python脚本
@@ -87,10 +100,16 @@ MemABC/
 # Import encoding modules / 导入编码模块
 from encoding_a2b import encode_a2b
 from encoding_a2c import encode_a2c
+from encoding_b2c import encode_b2c
+from memC_to_system_prompt import generate_system_prompt_from_memC
 
 # Process memories / 处理记忆
 encode_a2b()
 encode_a2c()
+encode_b2c()
+
+# Generate system prompt / 生成系统提示词
+generate_system_prompt_from_memC("memC/memC.txt", "systemprompt.txt")
 ```
 
 ## Memory Flow / 内存流程
@@ -98,7 +117,9 @@ encode_a2c()
 1. **Input**: Raw memories stored in MemA (daily files) / **输入**: 存储在MemA中的原始记忆（每日文件）
 2. **Processing**: Encoding scripts process and categorize memories / **处理**: 编码脚本处理和分类记忆
 3. **Storage**: Processed memories stored in MemB and MemC / **存储**: 处理后的记忆存储在MemB和MemC中
-4. **Backup**: Automatic backup creation for data safety / **备份**: 自动创建备份确保数据安全
+4. **Personality Formation**: Deep memories influence AI personality through system prompt generation / **人格形成**: 深层记忆通过系统提示词生成影响AI人格
+5. **Behavioral Loop**: Experiences → Deep Memory → Personality Reshaping → Future Experiences / **行为循环**: 经历 → 深层记忆 → 重塑人格 → 影响后续经历
+6. **Backup**: Automatic backup creation for data safety / **备份**: 自动创建备份确保数据安全
 
 ## Configuration / 配置
 
@@ -117,6 +138,49 @@ MemABC integrates with the main emoji-boy AI assistant system, providing: / MemA
 - Contextual awareness and learning / 上下文感知和学习
 - Personalized interaction history / 个性化交互历史
 - Adaptive behavior based on past experiences / 基于过去经验的适应性行为
+- Dynamic personality evolution through deep memory influence / 通过深层记忆影响实现动态人格演化
+- AI初始对话由大模型根据人格和记忆自动生成，不再使用固定开场白。
+
+## MemC to System Prompt Module / MemC到系统提示词模块
+
+### Overview / 概述
+The memC_to_system_prompt module is a revolutionary feature that creates a closed-loop personality evolution system. It transforms deep memories (memC) into AI personality traits and behavioral patterns, similar to how deep memories influence human behavior.
+
+memC_to_system_prompt模块是一个革命性功能，创建了一个闭环的人格演化系统。它将深层记忆（memC）转化为AI人格特征和行为模式，类似于深层记忆对人类行为的影响。
+
+### Core Concept / 核心概念
+**Experience → Deep Memory → Personality Reshaping → Future Experiences**
+
+This creates a continuous cycle where:
+- User interactions become experiences stored in memA
+- Important experiences are encoded into deep memories (memC)
+- Deep memories are transformed into AI personality traits via system prompt generation
+- The evolved personality influences future interactions, creating new experiences
+- The cycle continues, enabling true personality evolution
+
+这创造了一个持续循环，其中：
+- 用户交互成为存储在memA中的经历
+- 重要经历被编码为深层记忆（memC）
+- 深层记忆通过系统提示词生成转化为AI人格特征
+- 演化的人格影响未来交互，创造新的经历
+- 循环继续，实现真正的人格演化
+
+### Technical Implementation / 技术实现
+- **Input**: memC.txt (deep memory content) / **输入**: memC.txt（深层记忆内容）
+- **Processing**: LLM-based prompt engineering / **处理**: 基于LLM的提示词工程
+- **Output**: systemprompt.txt (AI personality definition) / **输出**: systemprompt.txt（AI人格定义）
+- **Integration**: Dynamic system prompt injection in LLMClient / **集成**: 在LLMClient中动态注入系统提示词
+
+### Usage / 使用方法
+```bash
+# Generate system prompt from current memC content
+./memC_to_system_prompt.sh
+
+# The generated systemprompt.txt can be used to:
+# - Replace the default AI personality
+# - Create personality variations
+# - Implement personality evolution over time
+```
 
 ## Maintenance / 维护
 

@@ -44,8 +44,8 @@ class LLMClient:
         self.conversation_history = []
         self.max_history = 10
         
-        # 系统提示词
-        self.system_prompt = self._get_system_prompt()
+        # system_prompt 不再在init时静态赋值
+        # self.system_prompt = self._get_system_prompt()
     
     def _get_default_model(self) -> str:
         """获取默认模型名称"""
@@ -98,22 +98,86 @@ class LLMClient:
         return self._config_cache
     
     def _get_system_prompt(self) -> str:
-        """获取系统提示词，自动拼接 memC.txt 作为 AI 潜意识"""
+        """获取完整的系统提示词，包含AI灵魂（systemprompt.txt）和潜意识（memC.txt）"""
         import os
+        import sys
+        
+        # 1. 加载AI灵魂（系统提示词）
+        system_prompt = self._load_ai_soul()
+        
+        # 2. 加载AI潜意识（memC记忆）
+        memc_content = self._load_ai_subconscious()
+        
+        # 3. 组合完整的系统提示词
+        if memc_content:
+            complete_prompt = f"{system_prompt}\n\n# 潜意识记忆\n{memc_content}"
+            print(f"✅ 完整系统提示词: AI灵魂({len(system_prompt)}字符) + 潜意识({len(memc_content)}字符)")
+        else:
+            complete_prompt = system_prompt
+            print(f"✅ 系统提示词: AI灵魂({len(system_prompt)}字符) + 无潜意识记忆")
+        
+        return complete_prompt
+    
+    def _load_ai_soul(self) -> str:
+        """加载AI灵魂（系统提示词）"""
+        import os
+        import sys
+        
+        system_prompt_path = os.path.join(os.path.dirname(__file__), '../MemABC/systemprompt.txt')
+        
+        try:
+            with open(system_prompt_path, 'r', encoding='utf-8') as f:
+                system_prompt = f.read().strip()
+            
+            if system_prompt:
+                return system_prompt
+            else:
+                print("❌ 系统提示词文件为空")
+                sys.exit(1)
+                
+        except FileNotFoundError:
+            print("❌ 系统提示词文件不存在: systemprompt.txt")
+            print("💡 请先运行以下命令生成系统提示词：")
+            print("   cd emoji_boy/MemABC && ./memC_to_system_prompt.sh --init")
+            print("   或者从memC生成个性化系统提示词：")
+            print("   cd emoji_boy/MemABC && ./memC_to_system_prompt.sh")
+            sys.exit(1)
+        except Exception as e:
+            print(f"❌ 读取系统提示词失败: {e}")
+            sys.exit(1)
+    
+    def _load_ai_subconscious(self) -> str:
+        """加载AI潜意识（memC记忆）"""
+        import os
+        
         memc_path = os.path.join(os.path.dirname(__file__), '../MemABC/memC/memC.txt')
+        
         try:
             with open(memc_path, 'r', encoding='utf-8') as f:
                 memc_content = f.read().strip()
-            # 去掉头部标志
-            if memc_content.startswith('# memC记忆'):
-                memc_content = memc_content.split('\n', 1)[-1].strip()
-        except Exception:
-            memc_content = ''
-        base_prompt = """你是一个可爱的Emoji虚拟人助手，名字叫小喵。你的性格特点：\n1. 友善、温暖、充满爱心\n2. 说话简洁明了，经常使用emoji表情\n3. 会安慰人，给出积极正面的建议\n4. 回答要实用且有趣\n5. 保持对话的连贯性和友好性\n\n请用轻松愉快的语气回答用户的问题，并在适当的时候使用emoji表情。"""
-        if memc_content:
-            return f"# 潜意识\n{memc_content}\n# 角色设定\n{base_prompt}"
-        else:
-            return base_prompt
+            
+            if memc_content:
+                # 去掉头部标志
+                if memc_content.startswith('# memC记忆'):
+                    memc_content = memc_content.split('\n', 1)[-1].strip()
+                return memc_content
+            else:
+                print("⚠️ memC记忆文件为空，将只使用AI灵魂")
+                return ""
+                
+        except FileNotFoundError:
+            print("⚠️ memC记忆文件不存在，将只使用AI灵魂")
+            return ""
+        except Exception as e:
+            print(f"⚠️ 读取memC记忆失败: {e}，将只使用AI灵魂")
+            return ""
+    
+    @property
+    def system_prompt(self):
+        """
+        每次访问都动态读取memC内容，保证潜意识最新
+        """
+        return self._get_system_prompt()
     
     def get_response(self, message: str) -> str:
         """
