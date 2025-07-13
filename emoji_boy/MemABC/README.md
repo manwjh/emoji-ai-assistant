@@ -1,3 +1,5 @@
+> 本模块与主项目 v0.1.1 同步，包含安全增强说明，详见主项目 CHANGELOG.md。
+
 # MemABC - Memory Management System
 # MemABC - 内存管理系统
 
@@ -34,8 +36,10 @@ MemABC是一个专为AI助手设计的复杂内存管理系统，提供结构化
 MemABC/
 ├── a2b.sh              # Memory encoding script (A to B) / 内存编码脚本 (A到B)
 ├── a2c.sh              # Memory encoding script (A to C) / 内存编码脚本 (A到C)
+├── b2c.sh              # Memory encoding script (B to C) / 内存编码脚本 (B到C)
 ├── encoding_a2b.py     # Python implementation of A to B encoding / A到B编码的Python实现
 ├── encoding_a2c.py     # Python implementation of A to C encoding / A到C编码的Python实现
+├── encoding_b2c.py     # Python implementation of B to C encoding / B到C编码的Python实现
 ├── memA/               # Primary memory storage / 主要内存存储
 │   └── 20250712.txt    # Daily memory files / 每日内存文件
 ├── memB/               # Secondary processed memory / 次要处理内存
@@ -51,10 +55,12 @@ MemABC/
 ### Memory Encoding / 内存编码
 - **A2B Encoding**: Converts raw memories from MemA to processed format in MemB
 - **A2C Encoding**: Archives important memories to long-term storage in MemC
+- **B2C Encoding**: Further distills and archives categorized memories from MemB to MemC
 - **Automatic Backup**: Built-in backup mechanisms for data integrity
 
 - **A2B编码**: 将MemA中的原始记忆转换为MemB中的处理格式
 - **A2C编码**: 将重要记忆归档到MemC的长期存储中
+- **B2C编码**: 将MemB中的分类记忆进一步提炼并归档到MemC
 - **自动备份**: 内置备份机制确保数据完整性
 
 ### Memory Processing / 内存处理

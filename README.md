@@ -1,4 +1,6 @@
-# Emoji AI Assistant v0.1.0
+# Emoji AI Assistant v0.1.1
+
+本版本为安全增强版，详见[CHANGELOG.md](CHANGELOG.md)
 
 一个极简但功能完整的桌面Emoji虚拟人助手，具备桌面浮动、智能对话、情绪检测和类脑记忆系统等功能。
 <img width="503" height="597" alt="image" src="https://github.com/user-attachments/assets/7d951f2e-04a6-424c-ad22-faa7d8773ba5" />
@@ -85,45 +87,14 @@ python run.py
 ```
 emoji-ai-assistant/
 ├── emoji_boy/                    # 主程序目录
-│   ├── main.py                   # 主程序入口
-│   ├── run.py                    # 启动脚本
-│   ├── config.py                 # 配置文件
-│   ├── requirements.txt          # Python依赖
-│   ├── env_example.txt           # 环境变量模板
-│   ├── start.sh                  # 完整启动脚本
-│   ├── quick_start.sh            # 快速启动脚本
-│   ├── test_venv.sh              # 环境测试脚本
-│   ├── test_auto_encoder.py      # 自动编码测试脚本
-│   ├── manual_encode.py          # 手动编码脚本
-│   ├── emoji_boy.png             # Emoji图标
 │   ├── ui/                       # 用户界面模块
-│   │   ├── __init__.py
-│   │   └── floating_head.py      # 悬浮Emoji窗口
 │   ├── interaction/              # 交互模块
-│   │   ├── __init__.py
-│   │   ├── chat_input.py         # 聊天输入对话框
-│   │   ├── chat_state_machine.py # 聊天状态机
-│   │   └── emotion_detector.py   # 情绪检测器
 │   ├── core/                     # 核心模块
-│   │   ├── __init__.py
-│   │   ├── llm_client.py         # AI模型客户端
-│   │   ├── chat_memory.py        # 聊天记忆管理
-│   │   ├── config_manager.py     # 配置管理器
-│   │   └── auto_encoder.py       # 自动编码调度器
 │   ├── MemABC/                   # 记忆系统
-│   │   ├── README.md             # 记忆系统文档
-│   │   ├── a2b.sh                # A到B编码脚本
-│   │   ├── a2c.sh                # A到C编码脚本
-│   │   ├── encoding_a2b.py       # A到B编码实现
-│   │   ├── encoding_a2c.py       # A到C编码实现
-│   │   ├── memA/                 # 原始记忆存储
-│   │   ├── memB/                 # 处理记忆存储
-│   │   └── memC/                 # 长期记忆存储
-│   └── venv/                     # Python虚拟环境
+│   └── ...                       # 其他配置和脚本文件
+├── scripts/                      # 工具脚本
 ├── MemABC/                       # 根目录记忆系统
-├── Design Goals.md               # 设计目标文档
-├── README.md                     # 项目说明
-└── LICENSE                       # 许可证
+└── ...                           # 文档和配置文件
 ```
 
 ## 🛠️ 技术栈

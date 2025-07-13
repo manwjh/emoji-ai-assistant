@@ -1,4 +1,6 @@
-# Emoji AI Assistant v0.1.0
+# Emoji AI Assistant v0.1.1
+
+This is a security-enhanced release, see [CHANGELOG.md](CHANGELOG.md) for details.
 
 A minimalist yet feature-complete desktop Emoji virtual assistant with floating desktop interface, intelligent conversation, emotion detection, and brain-like memory system.
 
@@ -83,43 +85,14 @@ The program detects the following emotion keywords in real-time:
 ```
 emoji-ai-assistant/
 ├── emoji_boy/                    # Main program directory
-│   ├── main.py                   # Main program entry
-│   ├── run.py                    # Launch script
-│   ├── config.py                 # Configuration file
-│   ├── requirements.txt          # Python dependencies
-│   ├── env_example.txt           # Environment variables template
-│   ├── start.sh                  # Complete startup script
-│   ├── quick_start.sh            # Quick startup script
-│   ├── test_venv.sh              # Environment test script
-│   ├── emoji_boy.png             # Emoji icon
 │   ├── ui/                       # User interface module
-│   │   ├── __init__.py
-│   │   └── floating_head.py      # Floating emoji window
 │   ├── interaction/              # Interaction module
-│   │   ├── __init__.py
-│   │   ├── chat_input.py         # Chat input dialog
-│   │   ├── chat_state_machine.py # Chat state machine
-│   │   └── emotion_detector.py   # Emotion detector
 │   ├── core/                     # Core module
-│   │   ├── __init__.py
-│   │   ├── llm_client.py         # AI model client
-│   │   ├── chat_memory.py        # Chat memory management
-│   │   └── config_manager.py     # Configuration manager
 │   ├── MemABC/                   # Memory system
-│   │   ├── README.md             # Memory system documentation
-│   │   ├── a2b.sh                # A to B encoding script
-│   │   ├── a2c.sh                # A to C encoding script
-│   │   ├── encoding_a2b.py       # A to B encoding implementation
-│   │   ├── encoding_a2c.py       # A to C encoding implementation
-│   │   ├── memA/                 # Raw memory storage
-│   │   ├── memB/                 # Processed memory storage
-│   │   └── memC/                 # Long-term memory storage
-│   └── venv/                     # Python virtual environment
+│   └── ...                       # Other config and script files
+├── scripts/                      # Utility scripts
 ├── MemABC/                       # Root directory memory system
-├── Design Goals.md               # Design goals document
-├── README.md                     # Project documentation (Chinese)
-├── README_EN.md                  # Project documentation (English)
-└── LICENSE                       # License
+└── ...                           # Documentation and config files
 ```
 
 ## 🛠️ Technology Stack
