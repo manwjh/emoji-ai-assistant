@@ -214,8 +214,17 @@ def encode_and_append_memA2C(memA_path, memC_file):
     # 用新内容整体覆盖 memC.txt
     update_memC(memC_file, new_important)
 
+def encode_a2c():
+    """A2C编码主函数，返回是否成功"""
+    try:
+        check_llm_env()
+        memA_dir = os.path.join(os.path.dirname(__file__), 'memA')
+        memC_file = os.path.join(os.path.dirname(__file__), 'memC', 'memC.txt')
+        encode_and_append_memA2C(memA_dir, memC_file)
+        return True
+    except Exception as e:
+        print(f"A2C编码失败: {e}")
+        return False
+
 if __name__ == "__main__":
-    check_llm_env()
-    memA_dir = os.path.join(os.path.dirname(__file__), 'memA')
-    memC_file = os.path.join(os.path.dirname(__file__), 'memC', 'memC.txt')
-    encode_and_append_memA2C(memA_dir, memC_file) 
+    encode_a2c() 

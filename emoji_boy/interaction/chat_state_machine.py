@@ -117,7 +117,7 @@ class ChatStateMachine(QObject):
     
     def is_special_command(self, message: str) -> bool:
         """检查是否为特殊命令"""
-        special_commands = ["@退出", "@检查", "@重置", "@帮助", "@状态"]
+        special_commands = ["@退出", "@检查", "@重置", "@帮助", "@状态", "@A2B", "@A2C", "@B2C"]
         return message.strip() in special_commands
     
     def handle_special_command(self, message: str, context) -> bool:
@@ -152,6 +152,9 @@ class ChatStateMachine(QObject):
 @重置 - 重置对话历史
 @帮助 - 显示此帮助信息
 @状态 - 显示当前连接状态
+@A2B - 启动A2B冥想
+@A2C - 启动A2C深度冥想
+@B2C - 启动B2C全面冥想
 
 正常对话：
 直接输入消息即可与AI助手对话
@@ -177,6 +180,21 @@ API类型: {status.get('api_type', '未知')}
 API密钥: {'已设置' if status.get('has_api_key') else '未设置'}
 对话历史: {status.get('history_length', 0)} 条消息"""
             context.show_status_message(status_text)
+            return True
+            
+        elif command == "@A2B":
+            print("🧠 收到A2B冥想命令")
+            context.start_a2b_meditation()
+            return True
+            
+        elif command == "@A2C":
+            print("🧠 收到A2C深度冥想命令")
+            context.start_a2c_meditation()
+            return True
+            
+        elif command == "@B2C":
+            print("🧠 收到B2C全面冥想命令")
+            context.start_b2c_meditation()
             return True
         
         return False

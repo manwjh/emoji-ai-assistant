@@ -546,6 +546,96 @@ model="doubao-seed-1-6-flash-250615"
         """显示状态信息"""
         self.add_message(status_text, False)
     
+    def start_a2b_meditation(self):
+        """启动A2B冥想"""
+        try:
+            self.add_message("🧠 开始A2B冥想...", False)
+            self.show_temp_message("正在执行A2B编码...")
+            
+            # 导入A2B编码模块
+            import sys
+            import os
+            sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'MemABC'))
+            
+            from encoding_a2b import encode_a2b
+            
+            # 执行A2B编码
+            result = encode_a2b()
+            
+            self.remove_temp_message()
+            
+            if result:
+                self.add_message("✅ A2B冥想完成！记忆已从原始状态编码到处理状态。", False)
+            else:
+                self.add_message("⚠️ A2B冥想过程中遇到一些问题，请检查日志。", False)
+                
+        except Exception as e:
+            self.remove_temp_message()
+            self.add_message(f"❌ A2B冥想失败：{str(e)}", False)
+            print(f"A2B冥想异常：{e}")
+            import traceback
+            traceback.print_exc()
+    
+    def start_a2c_meditation(self):
+        """启动A2C深度冥想"""
+        try:
+            self.add_message("🧠 开始A2C深度冥想...", False)
+            self.show_temp_message("正在执行A2C深度编码...")
+            
+            # 导入A2C编码模块
+            import sys
+            import os
+            sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'MemABC'))
+            
+            from encoding_a2c import encode_a2c
+            
+            # 执行A2C编码
+            result = encode_a2c()
+            
+            self.remove_temp_message()
+            
+            if result:
+                self.add_message("✅ A2C深度冥想完成！重要记忆已编码到深层记忆。", False)
+            else:
+                self.add_message("⚠️ A2C深度冥想过程中遇到一些问题，请检查日志。", False)
+                
+        except Exception as e:
+            self.remove_temp_message()
+            self.add_message(f"❌ A2C深度冥想失败：{str(e)}", False)
+            print(f"A2C深度冥想异常：{e}")
+            import traceback
+            traceback.print_exc()
+    
+    def start_b2c_meditation(self):
+        """启动B2C全面冥想"""
+        try:
+            self.add_message("🧠 开始B2C全面冥想...", False)
+            self.show_temp_message("正在执行B2C全面编码...")
+            
+            # 导入B2C编码模块
+            import sys
+            import os
+            sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'MemABC'))
+            
+            from encoding_b2c import encode_b2c
+            
+            # 执行B2C编码
+            result = encode_b2c()
+            
+            self.remove_temp_message()
+            
+            if result:
+                self.add_message("✅ B2C全面冥想完成！处理记忆已全面编码到深层记忆。", False)
+            else:
+                self.add_message("⚠️ B2C全面冥想过程中遇到一些问题，请检查日志。", False)
+                
+        except Exception as e:
+            self.remove_temp_message()
+            self.add_message(f"❌ B2C全面冥想失败：{str(e)}", False)
+            print(f"B2C全面冥想异常：{e}")
+            import traceback
+            traceback.print_exc()
+    
 
     
     def parse_config_message(self, message):

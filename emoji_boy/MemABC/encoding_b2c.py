@@ -240,13 +240,22 @@ def b2c_meditation_process(memB_file, memC_file):
     
     print("🎉 B2C冥想程序完成！")
 
+def encode_b2c():
+    """B2C编码主函数，返回是否成功"""
+    try:
+        check_llm_env()
+        memB_file = os.path.join(os.path.dirname(__file__), 'memB', 'memB.txt')
+        memC_file = os.path.join(os.path.dirname(__file__), 'memC', 'memC.txt')
+        
+        if not os.path.exists(memB_file):
+            print(f"❌ memB文件不存在: {memB_file}")
+            return False
+        
+        b2c_meditation_process(memB_file, memC_file)
+        return True
+    except Exception as e:
+        print(f"B2C编码失败: {e}")
+        return False
+
 if __name__ == "__main__":
-    check_llm_env()
-    memB_file = os.path.join(os.path.dirname(__file__), 'memB', 'memB.txt')
-    memC_file = os.path.join(os.path.dirname(__file__), 'memC', 'memC.txt')
-    
-    if not os.path.exists(memB_file):
-        print(f"❌ memB文件不存在: {memB_file}")
-        sys.exit(1)
-    
-    b2c_meditation_process(memB_file, memC_file) 
+    encode_b2c() 
