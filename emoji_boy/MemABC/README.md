@@ -35,6 +35,8 @@ MemABC是一个专为AI助手设计的复杂内存管理系统，提供结构化
 
 ```
 MemABC/
+├── init_MemABC.sh              # Initialization script for personality formatting / 人格格式化初始化脚本
+├── init_MemABC.py              # Python implementation of initialization / 初始化的Python实现
 ├── a2b.sh                      # Memory encoding script (A to B) / 内存编码脚本 (A到B)
 ├── a2c.sh                      # Memory encoding script (A to C) / 内存编码脚本 (A到C)
 ├── b2c.sh                      # Memory encoding script (B to C) / 内存编码脚本 (B到C)
@@ -55,6 +57,17 @@ MemABC/
 ```
 
 ## Features / 功能特性
+
+### Memory Initialization / 内存初始化
+- **Personality Formatting**: Establishes clean personality foundation for AI assistant
+- **Basic Architecture Setup**: Creates empty memA, memB, and initialized memC files
+- **Safe Initialization**: Optional backup mode to preserve existing memories
+- **Developer Memory Cleanup**: Prevents contamination from development process memories
+
+- **人格格式化**: 为AI助手建立清洁的人格基础
+- **基础架构设置**: 创建空的memA、memB和初始化的memC文件
+- **安全初始化**: 可选的备份模式以保护现有记忆
+- **开发者记忆清理**: 防止开发过程记忆的污染
 
 ### Memory Encoding / 内存编码
 - **A2B Encoding**: Converts raw memories from MemA to processed format in MemB
@@ -78,6 +91,19 @@ MemABC/
 
 ## Usage / 使用方法
 
+### Initialization / 初始化
+
+```bash
+# Initialize MemABC with basic personality structure / 使用基础人格架构初始化MemABC
+./init_MemABC.sh
+
+# Safe initialization with backup of existing memories / 安全初始化，备份现有记忆
+./init_MemABC.sh --safe
+
+# Show help information / 显示帮助信息
+./init_MemABC.sh --help
+```
+
 ### Shell Scripts / Shell脚本
 
 ```bash
@@ -97,11 +123,16 @@ MemABC/
 ### Python Scripts / Python脚本
 
 ```python
-# Import encoding modules / 导入编码模块
+# Import initialization and encoding modules / 导入初始化和编码模块
+from init_MemABC import init_MemABC, safe_init_MemABC
 from encoding_a2b import encode_a2b
 from encoding_a2c import encode_a2c
 from encoding_b2c import encode_b2c
 from memC_to_system_prompt import generate_system_prompt_from_memC
+
+# Initialize MemABC system / 初始化MemABC系统
+init_MemABC()                    # Normal initialization / 正常初始化
+safe_init_MemABC()               # Safe initialization with backup / 安全初始化，带备份
 
 # Process memories / 处理记忆
 encode_a2b()

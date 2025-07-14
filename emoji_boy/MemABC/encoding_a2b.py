@@ -1,6 +1,6 @@
 """
 encoding_A2B: 使用LLM对memA聊天记录进行关键信息提取，合并并保存至 memB/memB.txt。
-- 读取 memA/ 下的原始聊天记录
+- 读取 memA/ 下的原始聊天记录（仅最近7天）
 - 用 LLM 精炼为：关键时间、关键内容、情感
 - 精炼结果与 memB.txt 内容合并，再用 LLM 进一步精炼
 - 最终保存到 memB/memB.txt
@@ -10,6 +10,7 @@ encoding_A2B: 使用LLM对memA聊天记录进行关键信息提取，合并并�
 import os
 import sys
 from pathlib import Path
+from datetime import datetime, timedelta
 
 # 添加父目录到Python路径，以便导入core模块
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
@@ -37,14 +38,14 @@ A2B_EXTRACT_PROMPT_V2 = (
 
     "输出格式如下（保持结构严谨、可被程序解析）：\n"
     "- 时间: [开始时间]～[结束时间]\n"
-    "  内容: [我从M那里得知她的生日是10月23日，我确认会记住这个特别的日子。]\n"
+    "  内容: [我从M那里得知M的生日是10月23日，我确认会记住这个特别的日子。]\n"
     "  氛围: [亲密, 温暖]\n"
     "  标签: [生日, 私密信息, 重要事实]\n"
     "  触发词: [生日, 10月23日, 我的生日]\n"
 )
 
 A2B_MERGE_PROMPT = (
-    "你是一个模拟人脑长期记忆整合机制的AI，当前你需要将新的对话记忆片段（来自A-Memory编码）与我已有的长期记忆（memB）进行融合。"
+    "你是一个模拟人脑长期记忆整合机制的AI，当前你需要将新的对话记忆片段（来自memA编码）与我已有的长期记忆（memB）进行融合。"
     "你的任务是：以‘我’的第一人称视角，识别相似或重复事件并去冗余，保留最关键的记忆节点，避免信息堆叠。"
 
     "请保留以下信息结构不变：时间、内容、氛围、标签、触发词。\n"
@@ -77,21 +78,36 @@ def call_llm_extract(summary_prompt, raw_text):
 
 def encode_and_merge_memA2B(memA_path, memB_file):
     """
-    对 memA_path 下所有 txt 聊天记录，调用 LLM 精炼，合并到 memB_file。
+    对 memA_path 下最近7天的 txt 聊天记录，调用 LLM 精炼，合并到 memB_file。
     """
+    # 计算7天前的日期
+    seven_days_ago = datetime.now() - timedelta(days=7)
+    
     all_new_text = []
+    processed_files = []
+    
     for file in os.listdir(memA_path):
         if file.endswith('.txt'):
             src = Path(memA_path) / file
-            with open(src, 'r', encoding='utf-8') as f:
-                lines = f.readlines()
-                # 跳过首行 '# memA记忆' 标志（如存在）
-                if lines and lines[0].strip() == '# memA记忆':
-                    lines = lines[1:]
-                all_new_text.append(''.join(lines))
+            # 获取文件修改时间
+            file_mtime = datetime.fromtimestamp(src.stat().st_mtime)
+            
+            # 只处理最近7天的文件
+            if file_mtime >= seven_days_ago:
+                with open(src, 'r', encoding='utf-8') as f:
+                    lines = f.readlines()
+                    # 跳过首行 '# memA记忆' 标志（如存在）
+                    if lines and lines[0].strip() == '# memA记忆':
+                        lines = lines[1:]
+                    all_new_text.append(''.join(lines))
+                processed_files.append(file)
+    
     if not all_new_text:
-        print("[encoding_A2B] 没有新 memA 聊天记录，无需处理。")
+        print("[encoding_A2B] 没有最近7天的新 memA 聊天记录，无需处理。")
         return
+    
+    print(f"[encoding_A2B] 处理最近7天的文件: {', '.join(processed_files)}")
+    
     new_raw = '\n'.join(all_new_text)
     # 1. 新信息精炼
     new_summary = call_llm_extract(A2B_EXTRACT_PROMPT_V2, new_raw)
