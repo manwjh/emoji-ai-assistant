@@ -72,4 +72,24 @@ tokens/
 *.temp
 
 # Distribution
-.dist/ 
+.dist/
+
+# MemABC - AI Memory and Personality Data (SENSITIVE)
+# These contain personal development data and should NEVER be committed
+emoji_boy/MemABC/memA/
+emoji_boy/MemABC/memB/
+emoji_boy/MemABC/memC/
+emoji_boy/MemABC/backup_*/
+emoji_boy/MemABC/.auto_encoder_state.json
+emoji_boy/MemABC/systemprompt.txt
+emoji_boy/MemABC/__pycache__/
+
+# Keep only the initialization scripts and documentation
+!emoji_boy/MemABC/init_MemABC.py
+!emoji_boy/MemABC/init_MemABC.sh
+!emoji_boy/MemABC/test_init.py
+!emoji_boy/MemABC/README.md
+!emoji_boy/MemABC/encoding_*.py
+!emoji_boy/MemABC/*.sh
+!emoji_boy/MemABC/memC_to_system_prompt.py
+!emoji_boy/MemABC/memC_to_system_prompt.sh 
